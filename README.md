@@ -44,6 +44,11 @@ var enumValues = Enum<ConsoleKey>.Values;
 // Get enum field name for a particular value
 var backspaceName = Enum<ConsoleKey>.GetName(ConsoleKey.Backspace);
 
+// Bitwise flag operations
+var value = AttributeTargets.Assembly.SetFlags(AttributeTargets.Class, AttributeTargets.Method);
+bool hasClassAndMethod = value.HasAllFlags(AttributeTargets.Class | AttributeTargets.Method); // true
+IEnumerable<AttributeTargets> splitValues = value.SplitFlags(); // 3 separate flags split out
+
 // Create a parser that uses the [Display] attribute to get the names
 var displayNameParser = new EnumParser<MyEnum>(
     m => m.Field.GetCustomAttribute<DisplayAttribute>()!.GetName());
@@ -51,13 +56,7 @@ var displayNameParser = new EnumParser<MyEnum>(
 // Create a case-insensitive parser with a non-default separator
 var parser = new EnumParser<AttributeTargets>(separator: " | ", caseSensitive: false);
 
-// Bitwise flag operations
-var value = AttributeTargets.Assembly.SetFlags(AttributeTargets.Class, AttributeTargets.Method);
-bool hasClassAndMethod = value.HasAllFlags(AttributeTargets.Class | AttributeTargets.Method); // true
-IEnumerable<AttributeTargets> splitValues = value.SplitFlags(); // 3 separate flags split out
-
 // Convert enum value to/from string representation
 string enumString = parser.ToString(value) // "Assembly | Class | Method"
 value = parser.Parse(enumString);
-
 ```
