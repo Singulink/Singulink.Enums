@@ -40,6 +40,43 @@ namespace Singulink.Enums.Tests
             CollectionAssert.AreEqual(splitFlags, new[] { Flags.None });
         }
 
+        [TestMethod]
+        public void HasAllFlags()
+        {
+            var value = Flags.A | Flags.B;
+
+            Assert.IsTrue(value.HasAllFlags(Flags.A));
+            Assert.IsTrue(value.HasAllFlags(Flags.B));
+            Assert.IsTrue(value.HasAllFlags(Flags.A | Flags.B));
+            Assert.IsTrue(value.HasAllFlags(Flags.A, Flags.B));
+            Assert.IsTrue(value.HasAllFlags(new[] { Flags.A, Flags.B }));
+
+            Assert.IsTrue(value.HasAllFlags(Flags.None));
+
+            Assert.IsFalse(value.HasAllFlags(Flags.D));
+            Assert.IsFalse(value.HasAllFlags(Flags.A, Flags.B, Flags.C));
+            Assert.IsFalse(value.HasAllFlags(new[] { Flags.A, Flags.B, Flags.C }));
+        }
+
+        [TestMethod]
+        public void HasAnyFlags()
+        {
+            var value = Flags.A | Flags.B;
+
+            Assert.IsTrue(value.HasAnyFlag(Flags.A));
+            Assert.IsTrue(value.HasAnyFlag(Flags.B));
+            Assert.IsTrue(value.HasAnyFlag(Flags.A | Flags.B));
+            Assert.IsTrue(value.HasAnyFlag(Flags.A, Flags.B));
+            Assert.IsTrue(value.HasAnyFlag(new[] { Flags.A, Flags.B }));
+            Assert.IsTrue(value.HasAnyFlag(new[] { Flags.A, Flags.B, Flags.C }));
+
+            Assert.IsFalse(value.HasAnyFlag(Flags.None));
+
+            Assert.IsFalse(value.HasAnyFlag(Flags.C));
+            Assert.IsFalse(value.HasAnyFlag(Flags.C, Flags.D));
+            Assert.IsFalse(value.HasAnyFlag(new[] { Flags.C, Flags.D }));
+        }
+
         [Flags]
         private enum Flags : short
         {

@@ -64,8 +64,36 @@ namespace Singulink.Enums
             throw new NotSupportedException();
         }
 
+        /// <inheritdoc cref="HasAllFlags{T}(T, T)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool HasAllFlags<T>(this T value, T flags1, T flags2) where T : unmanaged, Enum
+        {
+            return value.HasAllFlags(flags1.SetFlags(flags2));
+        }
+
+        /// <inheritdoc cref="HasAllFlags{T}(T, T)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool HasAllFlags<T>(this T value, T flags1, T flags2, T flags3) where T : unmanaged, Enum
+        {
+            return value.HasAllFlags(flags1.SetFlags(flags2).SetFlags(flags3));
+        }
+
+        /// <inheritdoc cref="HasAllFlags{T}(T, T)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool HasAllFlags<T>(this T value, params T[] flags) where T : unmanaged, Enum
+        {
+            return value.HasAllFlags(default(T).SetFlags(flags));
+        }
+
+        /// <inheritdoc cref="HasAllFlags{T}(T, T)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool HasAllFlags<T>(this T value, IEnumerable<T> flags) where T : unmanaged, Enum
+        {
+            return value.HasAllFlags(default(T).SetFlags(flags));
+        }
+
         /// <summary>
-        /// Determines whether the falue has any of the given flags.
+        /// Determines whether the value has any of the given flags.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe bool HasAnyFlag<T>(this T value, T flags) where T : unmanaged, Enum
@@ -80,6 +108,34 @@ namespace Singulink.Enums
                 return (Unsafe.As<T, long>(ref value) & Unsafe.As<T, long>(ref flags)) != 0;
 
             throw new NotSupportedException();
+        }
+
+        /// <inheritdoc cref="HasAnyFlag{T}(T, T)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool HasAnyFlag<T>(this T value, T flags1, T flags2) where T : unmanaged, Enum
+        {
+            return value.HasAnyFlag(flags1.SetFlags(flags2));
+        }
+
+        /// <inheritdoc cref="HasAnyFlag{T}(T, T)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool HasAnyFlag<T>(this T value, T flags1, T flags2, T flags3) where T : unmanaged, Enum
+        {
+            return value.HasAnyFlag(flags1.SetFlags(flags2).SetFlags(flags3));
+        }
+
+        /// <inheritdoc cref="HasAnyFlag{T}(T, T)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool HasAnyFlag<T>(this T value, params T[] flags) where T : unmanaged, Enum
+        {
+            return value.HasAnyFlag(default(T).SetFlags(flags));
+        }
+
+        /// <inheritdoc cref="HasAnyFlag{T}(T, T)"/>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool HasAnyFlag<T>(this T value, IEnumerable<T> flags) where T : unmanaged, Enum
+        {
+            return value.HasAnyFlag(default(T).SetFlags(flags));
         }
 
         /// <summary>
@@ -100,21 +156,21 @@ namespace Singulink.Enums
             throw new NotSupportedException();
         }
 
-        /// <summary>
-        /// Sets the specified flags on the value.
-        /// </summary>
+        /// <inheritdoc cref="SetFlags{T}(T, T)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T SetFlags<T>(this T value, T flags1, T flags2) where T : unmanaged, Enum => value.SetFlags(flags1).SetFlags(flags2);
+        public static T SetFlags<T>(this T value, T flags1, T flags2) where T : unmanaged, Enum
+        {
+            return value.SetFlags(flags1).SetFlags(flags2);
+        }
 
-        /// <summary>
-        /// Sets the specified flags on the value.
-        /// </summary>
+        /// <inheritdoc cref="SetFlags{T}(T, T)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T SetFlags<T>(this T value, T flags1, T flags2, T flags3) where T : unmanaged, Enum => value.SetFlags(flags1).SetFlags(flags2).SetFlags(flags3);
+        public static T SetFlags<T>(this T value, T flags1, T flags2, T flags3) where T : unmanaged, Enum
+        {
+            return value.SetFlags(flags1).SetFlags(flags2).SetFlags(flags3);
+        }
 
-        /// <summary>
-        /// Sets the specified flags on the value.
-        /// </summary>
+        /// <inheritdoc cref="SetFlags{T}(T, T)"/>
         public static T SetFlags<T>(this T value, params T[] flags) where T : unmanaged, Enum
         {
             foreach (var flag in flags)
@@ -123,9 +179,7 @@ namespace Singulink.Enums
             return value;
         }
 
-        /// <summary>
-        /// Sets the specified flags on the value.
-        /// </summary>
+        /// <inheritdoc cref="SetFlags{T}(T, T)"/>
         public static T SetFlags<T>(this T value, IEnumerable<T> flags) where T : unmanaged, Enum
         {
             foreach (var flag in flags)
@@ -152,21 +206,21 @@ namespace Singulink.Enums
             throw new NotSupportedException();
         }
 
-        /// <summary>
-        /// Clears the specified flags on the value.
-        /// </summary>
+        /// <inheritdoc cref="ClearFlags{T}(T, T)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ClearFlags<T>(this T value, T flags1, T flags2) where T : unmanaged, Enum => value.ClearFlags(flags1).ClearFlags(flags2);
+        public static T ClearFlags<T>(this T value, T flags1, T flags2) where T : unmanaged, Enum
+        {
+            return value.ClearFlags(flags1).ClearFlags(flags2);
+        }
 
-        /// <summary>
-        /// Clears the specified flags on the value.
-        /// </summary>
+        /// <inheritdoc cref="ClearFlags{T}(T, T)"/>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T ClearFlags<T>(this T value, T flags1, T flags2, T flags3) where T : unmanaged, Enum => value.ClearFlags(flags1).ClearFlags(flags2).ClearFlags(flags3);
+        public static T ClearFlags<T>(this T value, T flags1, T flags2, T flags3) where T : unmanaged, Enum
+        {
+            return value.ClearFlags(flags1).ClearFlags(flags2).ClearFlags(flags3);
+        }
 
-        /// <summary>
-        /// Clears the specified flags on the value.
-        /// </summary>
+        /// <inheritdoc cref="ClearFlags{T}(T, T)"/>
         public static T ClearFlags<T>(this T value, params T[] flags) where T : unmanaged, Enum
         {
             foreach (var flag in flags)
@@ -175,9 +229,7 @@ namespace Singulink.Enums
             return value;
         }
 
-        /// <summary>
-        /// Clears the specified flags on the value.
-        /// </summary>
+        /// <inheritdoc cref="ClearFlags{T}(T, T)"/>
         public static T ClearFlags<T>(this T value, IEnumerable<T> flags) where T : unmanaged, Enum
         {
             foreach (var flag in flags)
