@@ -51,7 +51,7 @@ namespace Singulink.Enums
         }
 
         /// <summary>
-        /// Gets the enumeration members.
+        /// Gets the enumeration members. This is a slow reflection-based operation that does not cache the results.
         /// </summary>
         public static IEnumerable<EnumMember<T>> GetMembers() => typeof(T).GetFields(BindingFlags.Static | BindingFlags.Public).Select(f => new EnumMember<T>(f));
 

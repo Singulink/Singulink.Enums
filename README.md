@@ -42,7 +42,7 @@ var enumNames = Enum<ConsoleKey>.Names;
 var enumValues = Enum<ConsoleKey>.Values;
 
 // Get enum field name for a particular value
-var backspaceName = Enum<ConsoleKey>.GetName(ConsoleKey.Backspace);
+string backspaceName = ConsoleKey.Backspace.GetName();
 
 // Bitwise flag operations
 var value = AttributeTargets.Assembly.SetFlags(AttributeTargets.Class, AttributeTargets.Method);
@@ -52,7 +52,7 @@ IEnumerable<AttributeTargets> splitValues = value.SplitFlags(); // 3 separate fl
 
 // Create a parser that uses the [Display] attribute to get the names
 var displayNameParser = new EnumParser<MyEnum>(
-    m => m.Field.GetCustomAttribute<DisplayAttribute>()!.GetName());
+    m => m.Field.GetCustomAttribute<DisplayAttribute>().GetName());
 
 // Create a case-insensitive parser with a non-default separator
 var parser = new EnumParser<AttributeTargets>(separator: " | ", caseSensitive: false);
