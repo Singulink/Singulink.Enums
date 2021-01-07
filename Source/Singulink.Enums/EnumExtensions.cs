@@ -1,6 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Singulink.Enums
@@ -40,6 +41,12 @@ namespace Singulink.Enums
 
             return Enum<T>.Values.BinarySearch(value) >= 0;
         }
+
+        /// <inheritdoc cref="Enum{T}.TryGetName(T, out string?)"/>
+        public static bool TryGetName<T>(this T value, [NotNullWhen(true)] out string? name) where T : unmanaged, Enum => Enum<T>.TryGetName(value, out name);
+
+        /// <inheritdoc cref="Enum{T}.GetName(T)"/>
+        public static string GetName<T>(this T value) where T : unmanaged, Enum => Enum<T>.GetName(value);
 
         /// <summary>
         /// Determines whether the value's flags are all defined.
