@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
-using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Singulink.Enums.Tests
@@ -32,7 +30,7 @@ namespace Singulink.Enums.Tests
         [TestMethod]
         public void ToCustomNameString()
         {
-            var parser = new EnumParser<NormalEnum>(m => m.Field.GetCustomAttribute<DisplayAttribute>()!.GetName());
+            var parser = new EnumParser<NormalEnum>(m => m.Field.GetCustomAttribute<DisplayAttribute>()!.GetName()!);
 
             Assert.AreEqual("None (Display)", parser.ToString(NormalEnum.None));
             Assert.AreEqual("C (Display)", parser.ToString(NormalEnum.C));

@@ -31,7 +31,7 @@ namespace Singulink.Enums
         /// <param name="caseSensitive">True for case-sensitive names, otherwise false.</param>
         public EnumParser(Func<EnumMember<T>, string>? customNameGetter = null, string? separator = ", ", bool caseSensitive = true)
         {
-            customNameGetter ??= e => e.Name;
+            customNameGetter ??= m => m.Name;
 
             if (Enum<T>.IsFlagsEnum) {
                 _toStringSeparator = separator ?? throw new ArgumentNullException(nameof(separator), "Separator is required for flags enumerations.");

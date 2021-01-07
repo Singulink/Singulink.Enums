@@ -1,11 +1,9 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Singulink.Enums;
 
 #pragma warning disable CA1069 // Enums values should not be duplicated
-#pragma warning disable CS8605 // Unboxing a possibly null value.
 
-namespace Singulink.CoreLib.Tests
+namespace Singulink.Enums.Tests
 {
     [TestClass]
     public class EnumValidationTests

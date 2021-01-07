@@ -3,7 +3,6 @@ using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 #pragma warning disable CA1707 // Identifiers should not contain underscores
-#pragma warning disable CS8605 // Unboxing a possibly null value.
 
 namespace Singulink.Enums.Tests
 {

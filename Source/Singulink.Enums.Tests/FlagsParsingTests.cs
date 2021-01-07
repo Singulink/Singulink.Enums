@@ -30,7 +30,7 @@ namespace Singulink.Enums.Tests
         [TestMethod]
         public void ToCustomNameString()
         {
-            var parser = new EnumParser<FlagsEnum>(m => m.Field.GetCustomAttribute<DisplayAttribute>()!.GetName());
+            var parser = new EnumParser<FlagsEnum>(m => m.Field.GetCustomAttribute<DisplayAttribute>()!.GetName()!);
 
             Assert.AreEqual("A (Display), D (Display)", parser.ToString(FlagsEnum.A | FlagsEnum.D));
         }
@@ -58,7 +58,7 @@ namespace Singulink.Enums.Tests
         [TestMethod]
         public void ParseCustomName()
         {
-            var parser = new EnumParser<FlagsEnum>(m => m.Field.GetCustomAttribute<DisplayAttribute>()!.GetName());
+            var parser = new EnumParser<FlagsEnum>(m => m.Field.GetCustomAttribute<DisplayAttribute>()!.GetName()!);
 
             Assert.AreEqual(FlagsEnum.All, parser.Parse("All (Display)"));
             Assert.AreEqual(FlagsEnum.A | FlagsEnum.B, parser.Parse("A (Display)  , B (Display)"));
