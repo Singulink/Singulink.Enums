@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
@@ -38,7 +38,7 @@ namespace Singulink.Enums
         }
 
         /// <summary>
-        /// Gets all the defined names for the enumeration.
+        /// Gets all the defined values for the enumeration.
         /// </summary>
         /// <remarks>
         /// <para>The values are ordered and their indexes match their name's index in the <see cref="Names"/> collection.</para>

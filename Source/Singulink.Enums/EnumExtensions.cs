@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
@@ -11,8 +11,8 @@ namespace Singulink.Enums
     public static class EnumExtensions
     {
         /// <summary>
-        /// Uses the custom <see cref="IEnumValidatorAttribute{T}"/> if available to check if the value is valid, otherwise determines whether the value
-        /// defined for regular enumerations, or determines whether the value's flags are all defined for flags enumerations.
+        /// Uses the custom <see cref="IEnumValidatorAttribute{T}"/> if available to check if the value is valid, otherwise checks whether the value is defined
+        /// for regular enumerations, or checks whether the value's flags are all defined for flags enumerations.
         /// </summary>
         /// <remarks>
         /// <para>This method is equivalent to calling <see cref="IsDefined{T}(T)"/> on regular enumerations or <see cref="AreFlagsDefined{T}(T)"/> on flags
