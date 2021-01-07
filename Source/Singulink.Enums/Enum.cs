@@ -61,7 +61,7 @@ namespace Singulink.Enums
         /// <remarks>
         /// <para>The name is retrieved in O(log n) time. Use <see cref="EnumParser{T}"/> for O(1) parsing and string conversion.</para>
         /// </remarks>
-        public static bool TryGetName(T value, [MaybeNullWhen(false)] out string name)
+        public static bool TryGetName(T value, [NotNullWhen(true)] out string? name)
         {
             int index = Values.BinarySearch(value);
 
