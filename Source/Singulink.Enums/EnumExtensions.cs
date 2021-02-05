@@ -252,9 +252,7 @@ namespace Singulink.Enums
         /// <param name="allMatchingFlags">True if all matching flags should be included even if they are redundant, or false to only return a minimal set of flags.</param>
         public static IEnumerable<T> SplitFlags<T>(this T value, bool allMatchingFlags = false) where T : unmanaged, Enum
         {
-            var comparer = EqualityComparer<T>.Default;
-
-            if (comparer.Equals(value, default)) {
+            if (EqualityComparer<T>.Default.Equals(value, default)) {
                 if (default(T).IsDefined())
                     return new[] { default(T) };
 
@@ -267,7 +265,7 @@ namespace Singulink.Enums
             for (int i = Enum<T>.Values.Length - 1; i >= 0; i--) {
                 var definedValue = Enum<T>.Values[i];
 
-                if (!comparer.Equals(definedValue, default) && value.HasAllFlags(definedValue)) {
+                if (!EqualityComparer<T>.Default.Equals(definedValue, default) && value.HasAllFlags(definedValue)) {
                     results.Add(definedValue);
 
                     if (!allMatchingFlags)
@@ -279,7 +277,7 @@ namespace Singulink.Enums
 
             results.Reverse();
 
-            if (!comparer.Equals(remainder, default))
+            if (!EqualityComparer<T>.Default.Equals(remainder, default))
                 results.Add(remainder);
 
             return results;
