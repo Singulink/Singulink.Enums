@@ -45,9 +45,10 @@ var enumValues = Enum<ConsoleKey>.Values;
 string backspaceName = ConsoleKey.Backspace.GetName();
 
 // Bitwise flag operations
-var value = AttributeTargets.Assembly.SetFlags(AttributeTargets.Class, AttributeTargets.Method);
+var value = AttributeTargets.Assembly;
+value = value.SetFlags(AttributeTargets.Class, AttributeTargets.Method);
 bool hasClassAndMethod = value.HasAllFlags(AttributeTargets.Class, AttributeTargets.Method); // true
-bool hasAssembly = value.HasAnyFlag(AttributeTargets.Assembly); // true
+bool hasAssembly = value.HasAnyFlag(AttributeTargets.Assembly, AttributeTargets.Constructor); // true
 IEnumerable<AttributeTargets> splitValues = value.SplitFlags(); // 3 separate flags split out
 
 // Create a parser that uses the [Display] attribute to get the names
