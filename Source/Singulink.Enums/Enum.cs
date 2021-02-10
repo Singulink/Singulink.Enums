@@ -16,19 +16,24 @@ namespace Singulink.Enums
     /// </summary>
     public static class Enum<T> where T : unmanaged, Enum
     {
+        private static readonly bool _isFlagsEnum = typeof(T).GetCustomAttribute<FlagsAttribute>() != null;
+        private static readonly IComparer<T> _valueComparer = _isFlagsEnum ? new FlagsValueComparer() : Comparer<T>.Default;
+
         private static ImmutableArray<T> _values;
         private static ImmutableArray<string> _names;
 
         /// <summary>
         /// Gets a value indicating whether this enumeration is a flags enumeration (i.e. has <see cref="FlagsAttribute"/> applied to it).
         /// </summary>
-        public static bool IsFlagsEnum { get; } = typeof(T).GetCustomAttribute<FlagsAttribute>() != null;
+        public static bool IsFlagsEnum => _isFlagsEnum;
 
         /// <summary>
         /// Gets all the defined names for the enumeration.
         /// </summary>
         /// <remarks>
-        /// <para>The names are ordered by their values and their indexes match their value's index in the <see cref="Values"/> collection.</para>
+        /// <para>The names are ordered by their values and their indexes match their value's index in the <see cref="Values"/> collection. If this is a flags
+        /// enumeration then the values are ordered by their unsigned equivalent values to ensure they are ordered based on the bits that are set, so negative
+        /// values will be at the end.</para>
         /// </remarks>
         public static ImmutableArray<string> Names {
             get {
@@ -41,7 +46,9 @@ namespace Singulink.Enums
         /// Gets all the defined values for the enumeration.
         /// </summary>
         /// <remarks>
-        /// <para>The values are ordered and their indexes match their name's index in the <see cref="Names"/> collection.</para>
+        /// <para>The values are ordered and their indexes match their name's index in the <see cref="Names"/> collection. If this is a flags enumeration then
+        /// the values are ordered by their unsigned equivalent values to ensure they are ordered based on the bits that are set, so negative values will be at
+        /// the end.</para>
         /// </remarks>
         public static ImmutableArray<T> Values {
             get {
@@ -55,6 +62,8 @@ namespace Singulink.Enums
         /// </summary>
         public static IEnumerable<EnumMember<T>> GetMembers() => typeof(T).GetFields(BindingFlags.Static | BindingFlags.Public).Select(f => new EnumMember<T>(f));
 
+        internal static IComparer<T> ValueComparer => _valueComparer;
+
         /// <summary>
         /// Gets the first enumeration field name with the given value.
         /// </summary>
@@ -63,10 +72,10 @@ namespace Singulink.Enums
         /// </remarks>
         public static bool TryGetName(T value, [NotNullWhen(true)] out string? name)
         {
-            int index = Values.BinarySearch(value);
+            int index = Values.BinarySearch(value, _valueComparer);
 
             if (index < 0) {
-                name = null!;
+                name = null;
                 return false;
             }
 
@@ -138,11 +147,36 @@ namespace Singulink.Enums
             {
                 var members = GetMembers()
                     .Select(f => (f.Name, f.Value))
-                    .OrderBy(m => m.Value)
+                    .OrderBy(m => m.Value, _valueComparer)
                     .ToArray();
 
                 _values = members.Select(m => m.Value).ToImmutableArray();
                 _names = members.Select(m => m.Name).ToImmutableArray();
+            }
+        }
+
+        /// <summary>
+        /// Orders flags in reverse order of highest bit set regardless of whether the underlying value is signed or unsigned.
+        /// </summary>
+        private sealed class FlagsValueComparer : IComparer<T>
+        {
+            public int Compare(T x, T y)
+            {
+                int xc = Comparer<T>.Default.Compare(x, default);
+                int yc = Comparer<T>.Default.Compare(y, default);
+
+                if (xc >= 0) {
+                    if (yc >= 0)
+                        return Comparer<T>.Default.Compare(x, y);
+
+                    return -1;
+                }
+
+                if (yc >= 0)
+                    return 1;
+
+                // Both are negative:
+                return Comparer<T>.Default.Compare(x, y);
             }
         }
     }

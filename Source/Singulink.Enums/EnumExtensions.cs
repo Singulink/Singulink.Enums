@@ -39,7 +39,7 @@ namespace Singulink.Enums
                 return result == 0 || (result > 0 && comparer.Compare(value, EnumRangeInfo<T>.DefinedMax) <= 0);
             }
 
-            return Enum<T>.Values.BinarySearch(value) >= 0;
+            return Enum<T>.Values.BinarySearch(value, Enum<T>.ValueComparer) >= 0;
         }
 
         /// <inheritdoc cref="Enum{T}.TryGetName(T, out string?)"/>
@@ -252,6 +252,10 @@ namespace Singulink.Enums
         /// <param name="allMatchingFlags">True if all matching flags should be included even if they are redundant, or false to only return a minimal set of flags.</param>
         public static IEnumerable<T> SplitFlags<T>(this T value, bool allMatchingFlags = false) where T : unmanaged, Enum
         {
+            // This method depends on special enum flag sorting order of values to work properly.
+            if (!Enum<T>.IsFlagsEnum)
+                throw new InvalidOperationException($"Type '{typeof(T)}' is not a flags enumeration.");
+
             if (EqualityComparer<T>.Default.Equals(value, default)) {
                 if (default(T).IsDefined())
                     return new[] { default(T) };
