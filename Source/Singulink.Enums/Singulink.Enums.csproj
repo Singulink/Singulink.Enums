@@ -11,7 +11,7 @@
     <PackageTags>Enum, Enumeration, Generic</PackageTags>
     <Authors>Singulink</Authors>
     <Company>Singulink</Company>
-    <Version>1.2.0</Version>
+    <Version>1.2.1</Version>
     <Description>Fast, efficient, low-memory footprint generic operations and extension methods for enumeration types.</Description>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
