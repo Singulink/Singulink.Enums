@@ -6,7 +6,7 @@ using System.Linq;
 namespace Singulink.Enums
 {
     /// <summary>
-    /// Provides enumeration string conversion functionality. All operations are thread-safe.
+    /// Provides enumeration string conversion functionality in O(1) time. All operations are thread-safe.
     /// </summary>
     public sealed class EnumParser<T> where T : unmanaged, Enum
     {
