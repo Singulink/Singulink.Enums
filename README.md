@@ -66,7 +66,7 @@ var converter = new EnumConverter<AttributeTargets>(opt => {
 string enumString = converter.AsString(value) // "Assembly | Class | Method"
 value = converter.Parse(enumString);
 
-// Create an enum that uses the [Display] attribute to get the names
+// Create an enum converter that uses the [Display] attribute to get the names
 var displayNameConverter = new EnumConverter<YourEnum>(opt => opt.WithDisplayNameGetter());
 ```
 
