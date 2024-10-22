@@ -64,14 +64,14 @@ public class FlagsTests
         Assert.IsTrue(value.HasAnyFlag(Flags.B));
         Assert.IsTrue(value.HasAnyFlag(Flags.A | Flags.B));
         Assert.IsTrue(value.HasAnyFlag(Flags.A, Flags.B));
-        Assert.IsTrue(value.HasAnyFlags([Flags.A, Flags.B]));
-        Assert.IsTrue(value.HasAnyFlags([Flags.A, Flags.B, Flags.C]));
+        Assert.IsTrue(value.HasAnyFlag([Flags.A, Flags.B]));
+        Assert.IsTrue(value.HasAnyFlag([Flags.A, Flags.B, Flags.C]));
 
         Assert.IsFalse(value.HasAnyFlag(Flags.None));
 
         Assert.IsFalse(value.HasAnyFlag(Flags.C));
         Assert.IsFalse(value.HasAnyFlag(Flags.C, Flags.D));
-        Assert.IsFalse(value.HasAnyFlags([Flags.C, Flags.D]));
+        Assert.IsFalse(value.HasAnyFlag([Flags.C, Flags.D]));
     }
 
     [Flags]

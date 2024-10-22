@@ -41,7 +41,7 @@ public static partial class EnumExtensions
 
     /// <inheritdoc cref="HasAnyFlag{T}(T, T)"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool HasAnyFlags<T>(this T value, params T[] flags) where T : unmanaged, Enum
+    public static bool HasAnyFlag<T>(this T value, params T[] flags) where T : unmanaged, Enum
     {
         foreach (var flag in flags)
         {
