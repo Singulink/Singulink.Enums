@@ -53,6 +53,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{47519C4F-D76
 		Docs\api\index.md = Docs\api\index.md
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{7E2DF010-E2C3-424C-A1FA-BF8AF38126A2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{CDDDA4DF-CACE-4F89-9190-5342BD87D82F}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\build-and-test.yml = .github\workflows\build-and-test.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -83,6 +90,8 @@ Global
 		{A68A224C-50B6-41CA-AC0A-AC547402BCD7} = {C23262BC-2BDD-4765-8D32-8B374D75EF22}
 		{34843542-FF47-4BD4-BD15-A50E3E623BC8} = {2964B5F8-1672-4608-9C1A-287C2B015041}
 		{47519C4F-D767-49DA-B503-341D6D0CFCC0} = {711D90EE-778D-4E0C-987B-46927CF84467}
+		{7E2DF010-E2C3-424C-A1FA-BF8AF38126A2} = {90518D64-F526-4BA4-9644-26C431609CEB}
+		{CDDDA4DF-CACE-4F89-9190-5342BD87D82F} = {7E2DF010-E2C3-424C-A1FA-BF8AF38126A2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7040381B-0F17-43AE-8CD0-5B4FD1683A65}
