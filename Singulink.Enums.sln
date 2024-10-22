@@ -41,6 +41,18 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmark Items", "Benchmar
 		Benchmarks\Directory.Build.props = Benchmarks\Directory.Build.props
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{711D90EE-778D-4E0C-987B-46927CF84467}"
+	ProjectSection(SolutionItems) = preProject
+		Docs\docfx.json = Docs\docfx.json
+		Docs\index.md = Docs\index.md
+		Docs\toc.yml = Docs\toc.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "api", "api", "{47519C4F-D767-49DA-B503-341D6D0CFCC0}"
+	ProjectSection(SolutionItems) = preProject
+		Docs\api\index.md = Docs\api\index.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,6 +82,7 @@ Global
 		{F8A9E2A8-53DF-4F76-A3A5-4611B6FBCAF7} = {45EE73DC-39B9-4014-AF40-D61CC4D6BACE}
 		{A68A224C-50B6-41CA-AC0A-AC547402BCD7} = {C23262BC-2BDD-4765-8D32-8B374D75EF22}
 		{34843542-FF47-4BD4-BD15-A50E3E623BC8} = {2964B5F8-1672-4608-9C1A-287C2B015041}
+		{47519C4F-D767-49DA-B503-341D6D0CFCC0} = {711D90EE-778D-4E0C-987B-46927CF84467}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7040381B-0F17-43AE-8CD0-5B4FD1683A65}
