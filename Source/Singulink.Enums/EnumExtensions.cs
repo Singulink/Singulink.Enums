@@ -44,28 +44,46 @@ public static partial class EnumExtensions
     }
 
     /// <summary>
-    /// Gets the first enumeration field name with the given value.
+    /// Gets the first enumeration name with the given value.
     /// </summary>
+    /// <param name="value">The enumeration value.</param>
+    /// <exception cref=" MissingMemberException">An enumeration with the specified value was not found.</exception>
     public static string GetName<[DynamicallyAccessedMembers(PublicFields)] T>(this T value) where T : unmanaged, Enum
     {
         if (!TryGetName(value, out string name))
-            throw new MissingMemberException($"An enumeration field with the value '{value}' was not found.");
+            throw new MissingMemberException($"An enumeration with the value '{value}' was not found.");
 
         return name;
     }
 
     /// <summary>
-    /// Gets a string representation of the enumeration value using the default <see cref="EnumConverter{T}"/>.
+    /// Gets a string representation of the specified enumeration value.
     /// </summary>
+    /// <param name="value">The enumeration value.</param>
     public static string AsString<T>(this T value) where T : unmanaged, Enum
     {
         return EnumConverter<T>.Default.AsString(value);
     }
 
     /// <summary>
-    /// Gets the first enumeration field name with the given value.
+    /// Gets a string representation of the specified enumeration value using the specified options to customize how flags are split.
     /// </summary>
-    public static bool TryGetName<[DynamicallyAccessedMembers(PublicFields)] T>(this T value, [NotNullWhen(true)] out string? name) where T : unmanaged, Enum
+    /// <param name="value">The enumeration value.</param>
+    /// <param name="flagsOptions">Options to customize the behavior of the conversion if the value is a flags enumeration. Ignored if the value is not a flags
+    /// enumeration.</param>
+    public static string AsString<T>(this T value, SplitFlagsOptions flagsOptions) where T : unmanaged, Enum
+    {
+        return EnumConverter<T>.Default.AsString(value, flagsOptions);
+    }
+
+    /// <summary>
+    /// Gets the first enumeration name with the given value.
+    /// </summary>
+    /// <param name="value">The enumeration value.</param>
+    /// <param name="name">Contains the matched name when the method returns if the name was found, otherwise <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if the name was found, otherwise <see langword="false"/>.</returns>
+    public static bool TryGetName<[DynamicallyAccessedMembers(PublicFields)] T>(this T value, [NotNullWhen(true)] out string? name)
+        where T : unmanaged, Enum
     {
         int index = Enum<T>.BinarySearchValues(value);
 

@@ -1,11 +1,8 @@
 using System.Buffers;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
-using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace Singulink.Enums;
 
@@ -101,32 +98,25 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         _names = Unsafe.As<string[], ImmutableArray<string>>(ref names);
     }
 
-    /// <summary>
-    /// Gets the first enumeration name with the given value.
-    /// </summary>
+    /// <inheritdoc cref="EnumExtensions.GetName{T}(T)"/>
     public string GetName(T value)
     {
         if (!TryGetName(value, out string name))
-            throw new MissingMemberException($"An enumeration field with the value '{value}' was not found.");
+            throw new MissingMemberException($"An enumeration with the value '{value}' was not found.");
 
         return name;
     }
 
-    /// <summary>
-    /// Gets the first enumeration value with the given name.
-    /// </summary>
+    /// <inheritdoc cref="Enum{T}.GetValue(string, bool)"/>
     public T GetValue(string name)
     {
         if (!TryGetValue(name, out T value))
-            throw new MissingMemberException($"An enumeration field with the name '{name}' was not found.");
+            throw new MissingMemberException($"An enumeration with the name '{name}' was not found.");
 
         return value;
     }
 
-    /// <summary>
-    /// Gets the enumeration value parsed from the specified string.
-    /// </summary>
-    /// <param name="s">The string to be parsed.</param>
+    /// <inheritdoc cref="Enum{T}.Parse(string, bool)"/>
     public T Parse(string s)
     {
         if (TryParse(s, out T value))
@@ -135,30 +125,20 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         throw new FormatException("Input string was not in a correct format.");
     }
 
-    /// <summary>
-    /// Gets a string representation of the specified enumeration value.
-    /// </summary>
-    /// <param name="value">The enumeration value.</param>
+    /// <inheritdoc cref="EnumExtensions.AsString{T}(T)"/>
     public string AsString(T value) => AsString(value, SplitFlagsOptions.None);
 
-    /// <summary>
-    /// Gets a string representation of the specified enumeration value, optionally including all matching flags even if they are redundant.
-    /// </summary>
-    /// <param name="value">The enumeration value.</param>
-    /// <param name="flagsOptions">Options to customize the behavior of the conversion if the value is a flags enumeration. Ignored if the value is not a flags
-    /// enumeration.</param>
+    /// <inheritdoc cref="EnumExtensions.AsString{T}(T, SplitFlagsOptions)"/>
     [SkipLocalsInit]
     public unsafe string AsString(T value, SplitFlagsOptions flagsOptions)
     {
         if (Enum<T>.IsFlagsEnum && !flagsOptions.IsValid())
-        {
             throw new ArgumentException("Value of options flags is invalid.", nameof(flagsOptions));
-        }
 
         if (!Enum<T>.IsFlagsEnum || !flagsOptions.HasAllFlags(SplitFlagsOptions.AllMatchingFlags))
         {
-            if (TryGetName(value, out string str))
-                return str;
+            if (TryGetName(value, out string name))
+                return name;
 
             if (EqualityComparer<T>.Default.Equals(value, default))
                 return "0";
@@ -218,25 +198,13 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         });
     }
 
-    /// <summary>
-    /// Gets the enumeration value with the given  name.
-    /// </summary>
-    /// <param name="name">The name of the enumeration field.</param>
-    /// <param name="value">Contains the enumeration value if the lookup was successful, otherwise the default value of <typeparamref name="T"/>.</param>
-    /// <returns><see langword="true"/> if the lookup was successful, otherwise <see langword="false"/>.</returns>
+    /// <inheritdoc cref="Enum{T}.TryGetValue(string, out T)" />
     public bool TryGetValue(string name, out T value) => _nameToValueLookup.TryGetValue(name, out value);
 
-    /// <summary>
-    /// Gets the first enumeration field name with the given value.
-    /// </summary>
+    /// <inheritdoc cref="EnumExtensions.TryGetName{T}(T, out string?)"/>
     public bool TryGetName(T value, [NotNullWhen(true)] out string? name) => _valueToNameLookup.TryGetValue(value, out name);
 
-    /// <summary>
-    /// Parses the specified string into an enumeration value.
-    /// </summary>
-    /// <param name="s">The string to be parsed.</param>
-    /// <param name="value">The resulting value if parsing was successful, otherwise the default value of <typeparamref name="T"/>.</param>
-    /// <returns><see langword="true"/> if parsing was successful, otherwise <see langword="false"/>.</returns>
+    /// <inheritdoc cref="Enum{T}.TryParse(string, out T)"/>
     public bool TryParse(string s, out T value)
     {
         if (!Enum<T>.IsFlagsEnum)

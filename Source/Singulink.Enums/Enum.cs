@@ -22,6 +22,9 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
     /// <summary>
     /// Gets all the defined names for the enumeration, ordered by their value.
     /// </summary>
+    /// <remarks>
+    /// <see cref="Values"/> for more information on how values are ordered.
+    /// </remarks>
     public static ImmutableArray<string> Names => _info.Names;
 
     /// <summary>
@@ -29,69 +32,70 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
     /// </summary>
     /// <remarks>
     /// <para>The index of each value matches the index of its name in the <see cref="Names"/> collection. If this is a flags enumeration then the
-    /// values are ordered by the underlying type's unsigned representation.</para>
+    /// values are ordered by the underlying type's unsigned representation so that values are ordered by highest bits set in ascending order.</para>
     /// </remarks>
     public static ImmutableArray<T> Values => _info.Values;
 
     /// <summary>
-    /// Gets the enumeration fields that define its values. This is a slow reflection-based operation that is not cached.
+    /// Gets the enumeration fields that define its names and values. This is a slow reflection-based operation that is not cached.
     /// </summary>
     public static IEnumerable<FieldInfo> GetFields() => typeof(T).GetFields(BindingFlags.Static | BindingFlags.Public).Where(f => f.FieldType == typeof(T));
 
     /// <summary>
-    /// Gets the first enumeration field value with the given name.
+    /// Gets the enumeration value with the given name.
     /// </summary>
+    /// <param name="name">The name of the enumeration value.</param>
+    /// <param name="ignoreCase"><see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive parsing.</param>
+    /// <exception cref=" MissingMemberException">An enumeration with the specified name was not found.</exception>
     public static T GetValue(string name, bool ignoreCase = false)
     {
-        if (ignoreCase)
-            return EnumConverter<T>.DefaultIgnoreCase.GetValue(name);
-
-        return EnumConverter<T>.Default.GetValue(name);
+        return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.GetValue(name) : EnumConverter<T>.Default.GetValue(name);
     }
 
     /// <summary>
-    /// Gets the enumeration value parsed from the specified string using the default <see cref="EnumConverter{T}"/>.
+    /// Gets the enumeration value parsed from the specified string.
     /// </summary>
     /// <param name="s">The string to be parsed.</param>
-    /// <param name="ignoreCase">Specify <see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive parsing.</param>
+    /// <param name="ignoreCase"><see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive parsing.</param>
+    /// <exception cref="FormatException">Input string was not in a correct format.</exception>
     public static T Parse(string s, bool ignoreCase = false)
     {
-        if (ignoreCase)
-            return EnumConverter<T>.DefaultIgnoreCase.Parse(s);
-
-        return EnumConverter<T>.Default.Parse(s);
+        return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.Parse(s) : EnumConverter<T>.Default.Parse(s);
     }
 
-    /// <summary>
-    /// Gets the enumeration field value with the given name.
-    /// </summary>
-    public static bool TryGetValue(string name, out T value, bool ignoreCase = false)
-    {
-        if (ignoreCase)
-            return EnumConverter<T>.DefaultIgnoreCase.TryGetValue(name, out value);
+    /// <inheritdoc cref="TryGetValue(string, bool, out T)"/>
+    public static bool TryGetValue(string name, out T value) => EnumConverter<T>.Default.TryGetValue(name, out value);
 
-        return EnumConverter<T>.Default.TryGetValue(name, out value);
+    /// <summary>
+    /// Gets the enumeration value with the given name.
+    /// </summary>
+    /// <param name="name">The name of the enumeration value.</param>
+    /// <param name="ignoreCase"><see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive matching.</param>
+    /// <param name="value">Contains the matched value when the method returns if the value was found, otherwise the default value of <typeparamref
+    /// name="T"/>.</param>
+    /// <returns><see langword="true"/> if the value was found, otherwise <see langword="false"/>.</returns>
+    public static bool TryGetValue(string name, bool ignoreCase, out T value)
+    {
+        return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.TryGetValue(name, out value) : EnumConverter<T>.Default.TryGetValue(name, out value);
     }
 
     /// <inheritdoc cref="TryParse(string, bool, out T)"/>
-    public static bool TryParse(string s, out T value) => TryParse(s, false, out value);
+    public static bool TryParse(string s, out T value) => EnumConverter<T>.Default.TryParse(s, out value);
 
     /// <summary>
-    /// Gets the enumeration value parsed from the specified string using the default <see cref="EnumConverter{T}"/>.
+    /// Gets the enumeration value parsed from the specified string.
     /// </summary>
     /// <param name="s">The string to be parsed.</param>
-    /// <param name="ignoreCase">Specify <see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive parsing.</param>
+    /// <param name="ignoreCase"><see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive parsing.</param>
     /// <param name="value">Contains the resulting value when the method returns if parsing was successful, otherwise the default value of <typeparamref
     /// name="T"/>.</param>
     /// <returns><see langword="true"/> if parsing was successful, otherwise <see langword="false"/>.</returns>
     public static bool TryParse(string s, bool ignoreCase, out T value)
     {
-        if (ignoreCase)
-            return EnumConverter<T>.DefaultIgnoreCase.TryParse(s, out value);
-
-        return EnumConverter<T>.Default.TryParse(s, out value);
+        return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.TryParse(s, out value) : EnumConverter<T>.Default.TryParse(s, out value);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     internal static unsafe int BinarySearchValues(T value)
     {
         if (!_isFlagsEnum)

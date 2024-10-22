@@ -66,10 +66,10 @@ internal static unsafe class UnderlyingOperations
 
         if (sizeof(T) is 1)
         {
-            if (typeof(T).GetEnumUnderlyingType() == typeof(byte))
+            if (underlyingType == typeof(byte))
                 return UnsafeMethods.BitCast<T, byte>(value).ToString(culture);
 
-            if (typeof(T).GetEnumUnderlyingType() == typeof(sbyte))
+            if (underlyingType == typeof(sbyte))
                 return UnsafeMethods.BitCast<T, sbyte>(value).ToString(culture);
         }
         else if (sizeof(T) is 2)
