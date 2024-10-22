@@ -1,44 +1,17 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net8.0;net8.0-windows10.0.19041</TargetFrameworks>
     <RootNamespace>Singulink.Enums</RootNamespace>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <Copyright>© Singulink. All rights reserved.</Copyright>
+
     <PackageProjectUrl>https://github.com/Singulink/Singulink.Enums</PackageProjectUrl>
-    <PackageIcon>Singulink Icon 128x128.png</PackageIcon>
     <PackageTags>Enum, Enumeration, Generic</PackageTags>
-    <Authors>Singulink</Authors>
-    <Company>Singulink</Company>
-    <Version>1.2.1</Version>
+    <Version>2.0.0-beta1</Version>
     <Description>Fast, efficient, low-memory footprint generic operations and extension methods for enumeration types.</Description>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="stylecop.json" />
-    <None Include="..\..\Resources\Singulink Icon 128x128.png">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+    <PackageReference Include="PolySharp" Version="1.14.1" PrivateAssets="All" />
   </ItemGroup>
-
-  <ItemGroup>
-    <AdditionalFiles Include="stylecop.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="1.7.0" />
-  </ItemGroup>
-
 </Project>

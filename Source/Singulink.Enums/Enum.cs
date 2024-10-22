@@ -1,183 +1,147 @@
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-#pragma warning disable CA1716 // Identifiers should not match keywords
+namespace Singulink.Enums;
 
-namespace Singulink.Enums
+/// <summary>
+/// Provides methods and properties for getting enumeration names, values and other useful information.
+/// </summary>
+public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T>
+    where T : unmanaged, Enum
 {
+    private static readonly bool _isFlagsEnum = typeof(T).GetCustomAttribute<FlagsAttribute>() != null;
+    private static readonly (ImmutableArray<T> Values, ImmutableArray<string> Names) _info = InitInfo();
+
     /// <summary>
-    /// Provides methods and properties for getting enumeration names, values and other useful information.
+    /// Gets a value indicating whether this enumeration is a flags enumeration (i.e. has <see cref="FlagsAttribute"/> applied to it).
     /// </summary>
-    public static class Enum<T> where T : unmanaged, Enum
+    public static bool IsFlagsEnum => _isFlagsEnum;
+
+    /// <summary>
+    /// Gets all the defined names for the enumeration, ordered by their value.
+    /// </summary>
+    public static ImmutableArray<string> Names => _info.Names;
+
+    /// <summary>
+    /// Gets all the defined values for the enumeration, ordered by the value.
+    /// </summary>
+    /// <remarks>
+    /// <para>The index of each value matches the index of its name in the <see cref="Names"/> collection. If this is a flags enumeration then the
+    /// values are ordered by the underlying type's unsigned representation.</para>
+    /// </remarks>
+    public static ImmutableArray<T> Values => _info.Values;
+
+    /// <summary>
+    /// Gets the enumeration fields that define its values. This is a slow reflection-based operation that is not cached.
+    /// </summary>
+    public static IEnumerable<FieldInfo> GetFields() => typeof(T).GetFields(BindingFlags.Static | BindingFlags.Public).Where(f => f.FieldType == typeof(T));
+
+    /// <summary>
+    /// Gets the first enumeration field value with the given name.
+    /// </summary>
+    public static T GetValue(string name, bool ignoreCase = false)
     {
-        private static readonly bool _isFlagsEnum = typeof(T).GetCustomAttribute<FlagsAttribute>() != null;
-        private static readonly IComparer<T> _valueComparer = _isFlagsEnum ? new FlagsValueComparer() : Comparer<T>.Default;
+        if (ignoreCase)
+            return EnumConverter<T>.DefaultIgnoreCase.GetValue(name);
 
-        private static ImmutableArray<T> _values;
-        private static ImmutableArray<string> _names;
+        return EnumConverter<T>.Default.GetValue(name);
+    }
 
-        /// <summary>
-        /// Gets a value indicating whether this enumeration is a flags enumeration (i.e. has <see cref="FlagsAttribute"/> applied to it).
-        /// </summary>
-        public static bool IsFlagsEnum => _isFlagsEnum;
+    /// <summary>
+    /// Gets the enumeration value parsed from the specified string using the default <see cref="EnumConverter{T}"/>.
+    /// </summary>
+    /// <param name="s">The string to be parsed.</param>
+    /// <param name="ignoreCase">Specify <see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive parsing.</param>
+    public static T Parse(string s, bool ignoreCase = false)
+    {
+        if (ignoreCase)
+            return EnumConverter<T>.DefaultIgnoreCase.Parse(s);
 
-        /// <summary>
-        /// Gets all the defined names for the enumeration.
-        /// </summary>
-        /// <remarks>
-        /// <para>The names are ordered by their values and their indexes match their value's index in the <see cref="Values"/> collection. If this is a flags
-        /// enumeration then the values are ordered by their unsigned equivalent values to ensure they are ordered based on the bits that are set, so negative
-        /// values will be at the end.</para>
-        /// </remarks>
-        public static ImmutableArray<string> Names {
-            get {
-                InitializeFields();
-                return _names;
-            }
-        }
+        return EnumConverter<T>.Default.Parse(s);
+    }
 
-        /// <summary>
-        /// Gets all the defined values for the enumeration.
-        /// </summary>
-        /// <remarks>
-        /// <para>The values are ordered and their indexes match their name's index in the <see cref="Names"/> collection. If this is a flags enumeration then
-        /// the values are ordered by their unsigned equivalent values to ensure they are ordered based on the bits that are set, so negative values will be at
-        /// the end.</para>
-        /// </remarks>
-        public static ImmutableArray<T> Values {
-            get {
-                InitializeFields();
-                return _values;
-            }
-        }
+    /// <summary>
+    /// Gets the enumeration field value with the given name.
+    /// </summary>
+    public static bool TryGetValue(string name, out T value, bool ignoreCase = false)
+    {
+        if (ignoreCase)
+            return EnumConverter<T>.DefaultIgnoreCase.TryGetValue(name, out value);
 
-        /// <summary>
-        /// Gets the enumeration members. This is a slow reflection-based operation that does not cache the results.
-        /// </summary>
-        public static IEnumerable<EnumMember<T>> GetMembers() => typeof(T).GetFields(BindingFlags.Static | BindingFlags.Public).Select(f => new EnumMember<T>(f));
+        return EnumConverter<T>.Default.TryGetValue(name, out value);
+    }
 
-        internal static IComparer<T> ValueComparer => _valueComparer;
+    /// <inheritdoc cref="TryParse(string, bool, out T)"/>
+    public static bool TryParse(string s, out T value) => TryParse(s, false, out value);
 
-        /// <summary>
-        /// Gets the first enumeration field name with the given value.
-        /// </summary>
-        /// <remarks>
-        /// <para>The name is retrieved in O(log n) time. Use <see cref="EnumParser{T}"/> for O(1) parsing and string conversion.</para>
-        /// </remarks>
-        public static bool TryGetName(T value, [NotNullWhen(true)] out string? name)
+    /// <summary>
+    /// Gets the enumeration value parsed from the specified string using the default <see cref="EnumConverter{T}"/>.
+    /// </summary>
+    /// <param name="s">The string to be parsed.</param>
+    /// <param name="ignoreCase">Specify <see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive parsing.</param>
+    /// <param name="value">Contains the resulting value when the method returns if parsing was successful, otherwise the default value of <typeparamref
+    /// name="T"/>.</param>
+    /// <returns><see langword="true"/> if parsing was successful, otherwise <see langword="false"/>.</returns>
+    public static bool TryParse(string s, bool ignoreCase, out T value)
+    {
+        if (ignoreCase)
+            return EnumConverter<T>.DefaultIgnoreCase.TryParse(s, out value);
+
+        return EnumConverter<T>.Default.TryParse(s, out value);
+    }
+
+    internal static unsafe int BinarySearchValues(T value)
+    {
+        if (!_isFlagsEnum)
+            return Values.BinarySearch(value);
+
+        if (sizeof(T) == 1)
+            return ValuesAs<byte>().BinarySearch(UnsafeMethods.BitCast<T, byte>(value));
+        else if (sizeof(T) == 2)
+            return ValuesAs<ushort>().BinarySearch(UnsafeMethods.BitCast<T, ushort>(value));
+        else if (sizeof(T) == 4)
+            return ValuesAs<uint>().BinarySearch(UnsafeMethods.BitCast<T, uint>(value));
+        else if (sizeof(T) == 8)
+            return ValuesAs<ulong>().BinarySearch(UnsafeMethods.BitCast<T, ulong>(value));
+
+        throw new NotSupportedException();
+
+        static ImmutableArray<TValue> ValuesAs<TValue>() => Unsafe.As<ImmutableArray<T>, ImmutableArray<TValue>>(ref Unsafe.AsRef(in _info.Values));
+    }
+
+    private static (ImmutableArray<T> Values, ImmutableArray<string> Names) InitInfo()
+    {
+        var members = GetFields().Select(f => (f.Name, Value: (T)f.GetValue(null)!));
+
+        if (_isFlagsEnum)
+            members = members.OrderBy(e => new UnsignedComparable(e.Value));
+
+        var membersList = members.ToList();
+
+        var values = membersList.Select(m => m.Value).ToImmutableArray();
+        var names = membersList.Select(m => m.Name).ToImmutableArray();
+
+        return (values, names);
+    }
+
+    private unsafe readonly struct UnsignedComparable(T value) : IComparable<UnsignedComparable>
+    {
+        private readonly T _value = value;
+
+        public int CompareTo(UnsignedComparable other)
         {
-            int index = Values.BinarySearch(value, _valueComparer);
+            if (sizeof(T) == 1)
+                return UnsafeMethods.BitCast<T, byte>(_value).CompareTo(UnsafeMethods.BitCast<T, byte>(other._value));
+            else if (sizeof(T) == 2)
+                return UnsafeMethods.BitCast<T, ushort>(_value).CompareTo(UnsafeMethods.BitCast<T, ushort>(other._value));
+            else if (sizeof(T) == 4)
+                return UnsafeMethods.BitCast<T, uint>(_value).CompareTo(UnsafeMethods.BitCast<T, uint>(other._value));
+            else if (sizeof(T) == 8)
+                return UnsafeMethods.BitCast<T, ulong>(_value).CompareTo(UnsafeMethods.BitCast<T, long>(other._value));
 
-            if (index < 0) {
-                name = null;
-                return false;
-            }
-
-            name = _names[index];
-            return true;
-        }
-
-        /// <summary>
-        /// Gets the first enumeration field name with the given value.
-        /// </summary>
-        /// <remarks>
-        /// <para>The name is retrieved in O(log n) time. Use <see cref="EnumParser{T}"/> for O(1) parsing and string conversion.</para>
-        /// </remarks>
-        public static string GetName(T value)
-        {
-            if (!TryGetName(value, out string? name)) {
-                var underlyingType = Enum.GetUnderlyingType(typeof(T));
-                object underlyingValue = Convert.ChangeType(value, underlyingType, CultureInfo.InvariantCulture);
-                throw new MissingMemberException($"An enumeration member with the value '{underlyingValue}' was not found.");
-            }
-
-            return name;
-        }
-
-        /// <summary>
-        /// Gets the first enumeration field value with the given name.
-        /// </summary>
-        /// <remarks>
-        /// <para>The value is retrieved in O(n) time. Use <see cref="EnumParser{T}"/> for O(1) parsing and string conversion.</para>
-        /// </remarks>
-        public static bool TryGetValue(string name, out T value, bool ignoreCase = false)
-        {
-            InitializeFields();
-
-            var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
-
-            for (int i = 0; i < _names.Length; i++) {
-                if (string.Equals(_names[i], name, comparison)) {
-                    value = _values![i];
-                    return true;
-                }
-            }
-
-            value = default;
-            return false;
-        }
-
-        /// <summary>
-        /// Gets the first enumeration field value with the given name.
-        /// </summary>
-        /// <remarks>
-        /// <para>The value is retrieved in O(n) time. Use <see cref="EnumParser{T}"/> for O(1) parsing and string conversion.</para>
-        /// </remarks>
-        public static T GetValue(string name, bool ignoreCase = false)
-        {
-            if (!TryGetValue(name, out T value, ignoreCase))
-                throw new MissingMemberException($"An enumeration member with the name '{name}' was not found.");
-
-            return value;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void InitializeFields()
-        {
-            if (_names.IsDefault)
-                Initialize();
-
-            static void Initialize()
-            {
-                var members = GetMembers()
-                    .Select(f => (f.Name, f.Value))
-                    .OrderBy(m => m.Value, _valueComparer)
-                    .ToArray();
-
-                _values = members.Select(m => m.Value).ToImmutableArray();
-                _names = members.Select(m => m.Name).ToImmutableArray();
-            }
-        }
-
-        /// <summary>
-        /// Orders flags in reverse order of highest bit set regardless of whether the underlying value is signed or unsigned.
-        /// </summary>
-        private sealed class FlagsValueComparer : IComparer<T>
-        {
-            public int Compare(T x, T y)
-            {
-                int xc = Comparer<T>.Default.Compare(x, default);
-                int yc = Comparer<T>.Default.Compare(y, default);
-
-                if (xc >= 0) {
-                    if (yc >= 0)
-                        return Comparer<T>.Default.Compare(x, y);
-
-                    return -1;
-                }
-
-                if (yc >= 0)
-                    return 1;
-
-                // Both are negative:
-                return Comparer<T>.Default.Compare(x, y);
-            }
+            throw new NotSupportedException();
         }
     }
 }

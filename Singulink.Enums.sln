@@ -1,0 +1,77 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 15.0.26124.0
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{90518D64-F526-4BA4-9644-26C431609CEB}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		Directory.Build.props = Directory.Build.props
+		README.md = README.md
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{C23262BC-2BDD-4765-8D32-8B374D75EF22}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmarks", "Benchmarks", "{2964B5F8-1672-4608-9C1A-287C2B015041}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{45EE73DC-39B9-4014-AF40-D61CC4D6BACE}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Singulink.Enums", "Source\Singulink.Enums\Singulink.Enums.csproj", "{EECA5CA4-4AEF-4BDD-93DE-CE46594A61E0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Singulink.Enums.Tests", "Tests\Singulink.Enums.Tests\Singulink.Enums.Tests.csproj", "{3B89A8A9-A1BF-4BCA-AF6F-1FD591EE946A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Singulink.Enums.Benchmarks", "Benchmarks\Singulink.Enums.Benchmarks\Singulink.Enums.Benchmarks.csproj", "{A6AEDD20-8239-4255-BBCC-D562DC61F08B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source Items", "Source Items", "{F8A9E2A8-53DF-4F76-A3A5-4611B6FBCAF7}"
+	ProjectSection(SolutionItems) = preProject
+		Source\Directory.Build.props = Source\Directory.Build.props
+		Source\key.snk = Source\key.snk
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test Items", "Test Items", "{A68A224C-50B6-41CA-AC0A-AC547402BCD7}"
+	ProjectSection(SolutionItems) = preProject
+		Tests\.editorconfig = Tests\.editorconfig
+		Tests\BannedSymbols.txt = Tests\BannedSymbols.txt
+		Tests\Directory.Build.props = Tests\Directory.Build.props
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Benchmark Items", "Benchmark Items", "{34843542-FF47-4BD4-BD15-A50E3E623BC8}"
+	ProjectSection(SolutionItems) = preProject
+		Benchmarks\.editorconfig = Benchmarks\.editorconfig
+		Benchmarks\Directory.Build.props = Benchmarks\Directory.Build.props
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EECA5CA4-4AEF-4BDD-93DE-CE46594A61E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EECA5CA4-4AEF-4BDD-93DE-CE46594A61E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EECA5CA4-4AEF-4BDD-93DE-CE46594A61E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EECA5CA4-4AEF-4BDD-93DE-CE46594A61E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3B89A8A9-A1BF-4BCA-AF6F-1FD591EE946A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3B89A8A9-A1BF-4BCA-AF6F-1FD591EE946A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3B89A8A9-A1BF-4BCA-AF6F-1FD591EE946A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3B89A8A9-A1BF-4BCA-AF6F-1FD591EE946A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6AEDD20-8239-4255-BBCC-D562DC61F08B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6AEDD20-8239-4255-BBCC-D562DC61F08B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6AEDD20-8239-4255-BBCC-D562DC61F08B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6AEDD20-8239-4255-BBCC-D562DC61F08B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EECA5CA4-4AEF-4BDD-93DE-CE46594A61E0} = {45EE73DC-39B9-4014-AF40-D61CC4D6BACE}
+		{3B89A8A9-A1BF-4BCA-AF6F-1FD591EE946A} = {C23262BC-2BDD-4765-8D32-8B374D75EF22}
+		{A6AEDD20-8239-4255-BBCC-D562DC61F08B} = {2964B5F8-1672-4608-9C1A-287C2B015041}
+		{F8A9E2A8-53DF-4F76-A3A5-4611B6FBCAF7} = {45EE73DC-39B9-4014-AF40-D61CC4D6BACE}
+		{A68A224C-50B6-41CA-AC0A-AC547402BCD7} = {C23262BC-2BDD-4765-8D32-8B374D75EF22}
+		{34843542-FF47-4BD4-BD15-A50E3E623BC8} = {2964B5F8-1672-4608-9C1A-287C2B015041}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7040381B-0F17-43AE-8CD0-5B4FD1683A65}
+	EndGlobalSection
+EndGlobal

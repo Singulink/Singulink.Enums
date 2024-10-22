@@ -4,7 +4,7 @@
 [![View nuget packages](https://img.shields.io/nuget/v/Singulink.Enums.svg)](https://www.nuget.org/packages/Singulink.Enums/)
 [![Build and Test](https://github.com/Singulink/Singulink.Enums/workflows/build%20and%20test/badge.svg)](https://github.com/Singulink/Singulink.Enums/actions?query=workflow%3A%22build+and+test%22)
 
-**Singulink.Enums** is a tiny (~20KB) library that provides generic operations and extension methods for enumeration types. It contains a minimal set of the most common enumeration "must haves" that are missing from the .NET runtime. The effect on runtime memory footprint has been pushed to the bare minimum while still supporting common scenarios in the most optimized way possible.
+**Singulink.Enums** is a tiny (~30KB) library that provides generic operations and extension methods for enumeration types. It contains a minimal set of the most common enumeration "must haves" that are missing from the .NET runtime. The effect on runtime memory footprint has been pushed to the bare minimum while still supporting common scenarios in the most optimized way possible.
 
 ### About Singulink
 

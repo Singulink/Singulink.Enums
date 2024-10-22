@@ -1,10 +1,11 @@
-﻿using System;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 
-namespace Singulink.Enums
+namespace Singulink.Enums;
+
+internal static class EnumFlagsInfo<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T>
+    where T : unmanaged, Enum
 {
-    internal static class EnumFlagsInfo<T> where T : unmanaged, Enum
-    {
-        public static T AllDefinedFlags { get; } = default(T).SetFlags(Enum<T>.GetMembers().Select(m => m.Value));
-    }
+    internal static readonly T AllDefinedFlags = default(T).SetFlags(Enum<T>.Values);
+
+    internal static readonly IReadOnlyList<T> DefaultValueOnlyList = [default];
 }

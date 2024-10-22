@@ -1,12 +1,9 @@
-﻿using System;
-using System.Linq;
 using System.Reflection;
 
-namespace Singulink.Enums
+namespace Singulink.Enums;
+
+internal static class EnumValidation<T> where T : unmanaged, Enum
 {
-    internal static class EnumValidation<T> where T : unmanaged, Enum
-    {
-        public static readonly IEnumValidatorAttribute<T>? ValidatorAttribute =
-            typeof(T).GetCustomAttributes().OfType<IEnumValidatorAttribute<T>>().SingleOrDefault();
-    }
+    internal static readonly IEnumValidatorAttribute<T>? ValidatorAttribute =
+        typeof(T).GetCustomAttributes().OfType<IEnumValidatorAttribute<T>>().SingleOrDefault();
 }
