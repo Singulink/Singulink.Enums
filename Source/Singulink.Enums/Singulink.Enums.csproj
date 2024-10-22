@@ -4,10 +4,15 @@
     <RootNamespace>Singulink.Enums</RootNamespace>
 
     <PackageProjectUrl>https://github.com/Singulink/Singulink.Enums</PackageProjectUrl>
-    <PackageTags>Enum, Enumeration, Generic</PackageTags>
+    <PackageTags>Enum, Enumeration, Generic, Enums.NET</PackageTags>
     <Version>2.0.0</Version>
     <Description>Fast, efficient, low-memory footprint generic operations and extension methods for enumeration types.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Link="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
