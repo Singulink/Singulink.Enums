@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
 namespace Singulink.Enums;
@@ -14,7 +14,7 @@ public class EnumConvertOptions
     internal char _separatorChar = ',';
 
     /// <summary>
-    /// Gets or sets a string containing a separator character with an optional leading and trailing space to be used for flags enumerations. Ignored For
+    /// Gets or sets a string containing a separator character with an optional leading and trailing space to be used for flags enumerations. Ignored for
     /// non-flags enumerations. Defaults to <c>", "</c> (comma followed by a space).
     /// </summary>
     /// <remarks>

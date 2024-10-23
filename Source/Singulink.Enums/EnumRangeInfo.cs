@@ -13,15 +13,15 @@ internal static class EnumRangeInfo<[DynamicallyAccessedMembers(DynamicallyAcces
 
     static EnumRangeInfo()
     {
-        var values = Enum<T>.GetFields().Select(m => (T)m.GetValue(null)!).Distinct().ToArray();
+        var values = Enum<T>.GetFields().Select(m => (T)m.GetValue(null)!).Distinct().ToList();
 
-        if (values.Length == 0)
+        if (values.Count == 0)
             return;
 
         DefinedMin = values.Min();
         DefinedMax = values.Max();
 
         decimal range = Convert.ToDecimal(DefinedMax, null) - Convert.ToDecimal(DefinedMin, null);
-        IsContinuous = range == values.Length - 1;
+        IsContinuous = range == values.Count - 1;
     }
 }

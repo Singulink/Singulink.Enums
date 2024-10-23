@@ -8,13 +8,13 @@ public class ValueOrderTests
     [TestMethod]
     public void EnumOrder()
     {
-        Assert.IsTrue(Enum<AnEnum>.Values.SequenceEqual(new[] { AnEnum.MinusTwo, AnEnum.MinusOne, AnEnum.Zero, AnEnum.One, AnEnum.Two }));
+        Enum<AnEnum>.Values.ShouldBe([AnEnum.MinusTwo, AnEnum.MinusOne, AnEnum.Zero, AnEnum.One, AnEnum.Two]);
     }
 
     [TestMethod]
     public void FlagsOrder()
     {
-        Assert.IsTrue(Enum<Flags>.Values.SequenceEqual(new[] { Flags.Zero, Flags.LowestBit, Flags.SecondLowestBit, Flags.HighestBit, Flags.Highest2Bits }));
+        Enum<Flags>.Values.ShouldBe([Flags.Zero, Flags.LowestBit, Flags.SecondLowestBit, Flags.HighestBit, Flags.Highest2Bits]);
     }
 
     private enum AnEnum

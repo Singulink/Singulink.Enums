@@ -135,13 +135,13 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         if (Enum<T>.IsFlagsEnum && !flagsOptions.IsValid())
             throw new ArgumentException("Value of options flags is invalid.", nameof(flagsOptions));
 
+        if (EqualityComparer<T>.Default.Equals(value, default))
+            return Enum<T>.DefaultIndex >= 0 ? _names[Enum<T>.DefaultIndex] : (Enum<T>.IsFlagsEnum ? string.Empty : "0");
+
         if (!Enum<T>.IsFlagsEnum || !flagsOptions.HasAllFlags(SplitFlagsOptions.AllMatchingFlags))
         {
             if (TryGetName(value, out string name))
                 return name;
-
-            if (EqualityComparer<T>.Default.Equals(value, default))
-                return "0";
 
             if (!Enum<T>.IsFlagsEnum)
                 return UnderlyingOperations.ToString(value);

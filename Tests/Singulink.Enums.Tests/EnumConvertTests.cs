@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Singulink.Enums.Tests;
 
 [PrefixTestClass]
-public class EnumParsingTests
+public class EnumConvertTests
 {
     [TestMethod]
     public new void ToString()
@@ -32,6 +32,13 @@ public class EnumParsingTests
 
         parser.AsString(NormalEnum.None).ShouldBe("None (Display)");
         parser.AsString(NormalEnum.C).ShouldBe("C (Display)");
+    }
+
+    [TestMethod]
+    public void ToDefaultString()
+    {
+        default(NormalEnum).AsString().ShouldBe("None");
+        default(NoDefaultEnum).AsString().ShouldBe("0");
     }
 
     [TestMethod]
@@ -82,5 +89,12 @@ public class EnumParsingTests
         C = 4,
         [Display(Name = "D (Display)")]
         D = 8,
+    }
+
+    private enum NoDefaultEnum : long
+    {
+        A = 1,
+        B = 2,
+        C = 3,
     }
 }

@@ -14,7 +14,7 @@ public static partial class EnumExtensions
     /// Splits the value into the defined flags that make up the value, plus the remainder (if <see cref="SplitFlagsOptions.ExcludeRemainder"/> is not set).
     /// </summary>
     /// <param name="value">The value to split.</param>
-    /// <param name="options">The options to use during for the splitting operation.</param>
+    /// <param name="options">The options to use for the splitting operation.</param>
     [SkipLocalsInit]
     public static IReadOnlyList<T> SplitFlags<[DynamicallyAccessedMembers(PublicFields)] T>(this T value, SplitFlagsOptions options = SplitFlagsOptions.None)
         where T : unmanaged, Enum
@@ -26,12 +26,7 @@ public static partial class EnumExtensions
             throw new ArgumentException("Value of options flags is invalid.", nameof(options));
 
         if (EqualityComparer<T>.Default.Equals(value, default))
-        {
-            if (default(T).IsDefined())
-                return EnumFlagsInfo<T>.DefaultValueOnlyList;
-
-            return [];
-        }
+            return EnumFlagsInfo<T>.DefaultValueList;
 
         bool doStackAlloc = Enum<T>.Values.Length <= 79 || !options.HasAllFlags(SplitFlagsOptions.AllMatchingFlags);
 

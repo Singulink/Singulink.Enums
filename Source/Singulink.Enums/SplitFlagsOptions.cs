@@ -12,8 +12,8 @@ public enum SplitFlagsOptions
     None = 0,
 
     /// <summary>
-    /// Include all matching flags in the result, even if they are redundant. If this option is not specified, only the minimal set of flags are included. Zero
-    /// value flags are never included.
+    /// Include all matching flags in the result, even if they are redundant. If this option is not specified, only the minimal set of flags are included.
+    /// A zero-value flag is only included if the value has no flags set, regardless of this option.
     /// </summary>
     AllMatchingFlags = 1,
 

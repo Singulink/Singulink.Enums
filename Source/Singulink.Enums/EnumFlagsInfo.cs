@@ -7,5 +7,5 @@ internal static class EnumFlagsInfo<[DynamicallyAccessedMembers(DynamicallyAcces
 {
     internal static readonly T AllDefinedFlags = default(T).SetFlags(Enum<T>.Values);
 
-    internal static readonly IReadOnlyList<T> DefaultValueOnlyList = [default];
+    internal static readonly IReadOnlyList<T> DefaultValueList = Enum<T>.DefaultIndex >= 0 ? [default] : [];
 }

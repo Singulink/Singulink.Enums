@@ -4,7 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Singulink.Enums.Tests;
 
 [PrefixTestClass]
-public class FlagsParsingTests
+public class FlagsConvertTests
 {
     [TestMethod]
     public new void ToString()
@@ -43,6 +43,13 @@ public class FlagsParsingTests
 
         parser.AsString(FlagsEnum.A | FlagsEnum.D).ShouldBe("A (Display), D (Display)");
         parser.AsString(FlagsEnum.A | FlagsEnum.D, SplitFlagsOptions.None).ShouldBe("A (Display), D (Display)");
+    }
+
+    [TestMethod]
+    public void ToDefaultString()
+    {
+        default(FlagsEnum).AsString().ShouldBe("None");
+        default(NoDefaultFlags).AsString().ShouldBe(string.Empty);
     }
 
     [TestMethod]
@@ -137,5 +144,13 @@ public class FlagsParsingTests
         D = 8,
         [Display(Name = "All (Display)")]
         All = A | B | C | D,
+    }
+
+    [Flags]
+    private enum NoDefaultFlags : short
+    {
+        A = 1,
+        B = 2,
+        C = 4,
     }
 }

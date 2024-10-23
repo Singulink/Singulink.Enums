@@ -11,30 +11,40 @@ public class FlagsTests
     public void AreFlagsDefined()
     {
         foreach (Flags f in Enum.GetValues(typeof(Flags)))
-            Assert.IsTrue(f.AreFlagsDefined());
+            f.AreFlagsDefined().ShouldBeTrue();
 
-        Assert.IsFalse(((Flags)16).AreFlagsDefined());
-        Assert.AreEqual(Flags.All, EnumFlagsInfo<Flags>.AllDefinedFlags);
+        ((Flags)16).AreFlagsDefined().ShouldBeFalse();
+        EnumFlagsInfo<Flags>.AllDefinedFlags.ShouldBe(Flags.All);
     }
 
     [TestMethod]
     public void SplitAll()
     {
         var splitFlags = Flags.All.SplitFlags().ToList();
-        CollectionAssert.AreEqual(splitFlags, new[] { Flags.All });
+        splitFlags.ShouldBe([Flags.All]);
 
         splitFlags = Flags.All.SplitFlags(SplitFlagsOptions.AllMatchingFlags).ToList();
-        CollectionAssert.AreEquivalent(splitFlags, new[] { Flags.All, Flags.A, Flags.B, Flags.C, Flags.D });
+        splitFlags.ShouldBe([Flags.A, Flags.B, Flags.C, Flags.D, Flags.All]);
     }
 
     [TestMethod]
     public void SplitNone()
     {
         var splitFlags = Flags.None.SplitFlags().ToList();
-        CollectionAssert.AreEqual(splitFlags, new[] { Flags.None });
+        splitFlags.ShouldBe([Flags.None]);
 
         splitFlags = Flags.None.SplitFlags(SplitFlagsOptions.AllMatchingFlags).ToList();
-        CollectionAssert.AreEqual(splitFlags, new[] { Flags.None });
+        splitFlags.ShouldBe([Flags.None]);
+    }
+
+    [TestMethod]
+    public void SplitNoDefault()
+    {
+        var splitFlags = default(NoDefaultFlags).SplitFlags().ToList();
+        splitFlags.Count.ShouldBe(0);
+
+        splitFlags = NoDefaultFlags.A.SplitFlags().ToList();
+        splitFlags.ShouldBe([NoDefaultFlags.A]);
     }
 
     [TestMethod]
@@ -42,17 +52,17 @@ public class FlagsTests
     {
         var value = Flags.A | Flags.B;
 
-        Assert.IsTrue(value.HasAllFlags(Flags.A));
-        Assert.IsTrue(value.HasAllFlags(Flags.B));
-        Assert.IsTrue(value.HasAllFlags(Flags.A | Flags.B));
-        Assert.IsTrue(value.HasAllFlags(Flags.A, Flags.B));
-        Assert.IsTrue(value.HasAllFlags([Flags.A, Flags.B]));
+        value.HasAllFlags(Flags.A).ShouldBeTrue();
+        value.HasAllFlags(Flags.B).ShouldBeTrue();
+        value.HasAllFlags(Flags.A | Flags.B).ShouldBeTrue();
+        value.HasAllFlags(Flags.A, Flags.B).ShouldBeTrue();
+        value.HasAllFlags([Flags.A, Flags.B]).ShouldBeTrue();
 
-        Assert.IsTrue(value.HasAllFlags(Flags.None));
+        value.HasAllFlags(Flags.None).ShouldBeTrue();
 
-        Assert.IsFalse(value.HasAllFlags(Flags.D));
-        Assert.IsFalse(value.HasAllFlags(Flags.A, Flags.B, Flags.C));
-        Assert.IsFalse(value.HasAllFlags([Flags.A, Flags.B, Flags.C]));
+        value.HasAllFlags(Flags.D).ShouldBeFalse();
+        value.HasAllFlags(Flags.A, Flags.B, Flags.C).ShouldBeFalse();
+        value.HasAllFlags([Flags.A, Flags.B, Flags.C]).ShouldBeFalse();
     }
 
     [TestMethod]
@@ -60,18 +70,18 @@ public class FlagsTests
     {
         var value = Flags.A | Flags.B;
 
-        Assert.IsTrue(value.HasAnyFlag(Flags.A));
-        Assert.IsTrue(value.HasAnyFlag(Flags.B));
-        Assert.IsTrue(value.HasAnyFlag(Flags.A | Flags.B));
-        Assert.IsTrue(value.HasAnyFlag(Flags.A, Flags.B));
-        Assert.IsTrue(value.HasAnyFlag([Flags.A, Flags.B]));
-        Assert.IsTrue(value.HasAnyFlag([Flags.A, Flags.B, Flags.C]));
+        value.HasAnyFlag(Flags.A).ShouldBeTrue();
+        value.HasAnyFlag(Flags.B).ShouldBeTrue();
+        value.HasAnyFlag(Flags.A | Flags.B).ShouldBeTrue();
+        value.HasAnyFlag(Flags.A, Flags.B).ShouldBeTrue();
+        value.HasAnyFlag([Flags.A, Flags.B]).ShouldBeTrue();
+        value.HasAnyFlag([Flags.A, Flags.B, Flags.C]).ShouldBeTrue();
 
-        Assert.IsFalse(value.HasAnyFlag(Flags.None));
+        value.HasAnyFlag(Flags.None).ShouldBeFalse();
 
-        Assert.IsFalse(value.HasAnyFlag(Flags.C));
-        Assert.IsFalse(value.HasAnyFlag(Flags.C, Flags.D));
-        Assert.IsFalse(value.HasAnyFlag([Flags.C, Flags.D]));
+        value.HasAnyFlag(Flags.C).ShouldBeFalse();
+        value.HasAnyFlag(Flags.C, Flags.D).ShouldBeFalse();
+        value.HasAnyFlag([Flags.C, Flags.D]).ShouldBeFalse();
     }
 
     [Flags]
@@ -83,5 +93,14 @@ public class FlagsTests
         C = 4,
         D = 8,
         All = A | B | C | D,
+    }
+
+    [Flags]
+    private enum NoDefaultFlags : short
+    {
+        A = 1,
+        B = 2,
+        C = 4,
+        D = 8,
     }
 }

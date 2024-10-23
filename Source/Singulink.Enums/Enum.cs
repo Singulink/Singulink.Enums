@@ -13,6 +13,7 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
 {
     private static readonly bool _isFlagsEnum = typeof(T).GetCustomAttribute<FlagsAttribute>() != null;
     private static readonly (ImmutableArray<T> Values, ImmutableArray<string> Names) _info = InitInfo();
+    private static readonly int _defaultIndex = BinarySearchValues(default);
 
     /// <summary>
     /// Gets a value indicating whether this enumeration is a flags enumeration (i.e. has <see cref="FlagsAttribute"/> applied to it).
@@ -35,6 +36,8 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
     /// values are ordered by the underlying type's unsigned representation so that values are ordered by highest bits set in ascending order.</para>
     /// </remarks>
     public static ImmutableArray<T> Values => _info.Values;
+
+    internal static int DefaultIndex => _defaultIndex;
 
     /// <summary>
     /// Gets the enumeration fields that define its names and values. This is a slow reflection-based operation that is not cached.
