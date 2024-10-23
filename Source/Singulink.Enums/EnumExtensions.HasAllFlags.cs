@@ -18,13 +18,13 @@ public static partial class EnumExtensions
         // #else
 
         if (sizeof(T) == 1)
-            return (UnsafeMethods.BitCast<T, byte>(value) | UnsafeMethods.BitCast<T, byte>(flags)) == UnsafeMethods.BitCast<T, byte>(value);
+            return (UnsafeMethods.BitCast<T, byte>(value) & UnsafeMethods.BitCast<T, byte>(flags)) == UnsafeMethods.BitCast<T, byte>(flags);
         else if (sizeof(T) == 2)
-            return (UnsafeMethods.BitCast<T, short>(value) | UnsafeMethods.BitCast<T, short>(flags)) == UnsafeMethods.BitCast<T, short>(value);
+            return (UnsafeMethods.BitCast<T, short>(value) & UnsafeMethods.BitCast<T, short>(flags)) == UnsafeMethods.BitCast<T, short>(flags);
         else if (sizeof(T) == 4)
-            return (UnsafeMethods.BitCast<T, int>(value) | UnsafeMethods.BitCast<T, int>(flags)) == UnsafeMethods.BitCast<T, int>(value);
+            return (UnsafeMethods.BitCast<T, int>(value) & UnsafeMethods.BitCast<T, int>(flags)) == UnsafeMethods.BitCast<T, int>(flags);
         else if (sizeof(T) == 8)
-            return (UnsafeMethods.BitCast<T, long>(value) | UnsafeMethods.BitCast<T, long>(flags)) == UnsafeMethods.BitCast<T, long>(value);
+            return (UnsafeMethods.BitCast<T, long>(value) & UnsafeMethods.BitCast<T, long>(flags)) == UnsafeMethods.BitCast<T, long>(flags);
 
         throw new NotSupportedException();
 
