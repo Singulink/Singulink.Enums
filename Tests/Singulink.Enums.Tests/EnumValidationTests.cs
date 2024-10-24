@@ -21,7 +21,10 @@ public class EnumValidationTests
         }
 
         (ContinuousA.A - 1).IsDefined().ShouldBeFalse();
+        (ContinuousA.A - 1).IsValid().ShouldBeFalse();
+
         (ContinuousA.E + 1).IsDefined().ShouldBeFalse();
+        (ContinuousA.E + 1).IsValid().ShouldBeFalse();
     }
 
     [TestMethod]
@@ -49,10 +52,16 @@ public class EnumValidationTests
         EnumRangeInfo<Discontinous>.DefinedMax.ShouldBe(Discontinous.E);
 
         foreach (Discontinous value in Enum.GetValues(typeof(Discontinous)))
+        {
             value.IsDefined().ShouldBeTrue();
+            value.IsValid().ShouldBe(value == Discontinous.B);
+        }
 
         (Discontinous.A - 1).IsDefined().ShouldBeFalse();
+        (Discontinous.A - 1).IsValid().ShouldBeFalse();
+
         (Discontinous.E + 1).IsDefined().ShouldBeFalse();
+        (Discontinous.E + 1).IsValid().ShouldBeFalse();
     }
 
     [TestMethod]

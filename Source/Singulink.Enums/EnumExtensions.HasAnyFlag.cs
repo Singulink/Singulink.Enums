@@ -40,7 +40,6 @@ public static partial class EnumExtensions
     }
 
     /// <inheritdoc cref="HasAnyFlag{T}(T, T)"/>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool HasAnyFlag<T>(this T value, params T[] flags) where T : unmanaged, Enum
     {
         foreach (var flag in flags)
@@ -53,7 +52,18 @@ public static partial class EnumExtensions
     }
 
     /// <inheritdoc cref="HasAnyFlag{T}(T, T)"/>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool HasAnyFlag<T>(this T value, ReadOnlySpan<T> flags) where T : unmanaged, Enum
+    {
+        foreach (var flag in flags)
+        {
+            if (value.HasAnyFlag(flag))
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <inheritdoc cref="HasAnyFlag{T}(T, T)"/>
     public static bool HasAnyFlag<T>(this T value, IEnumerable<T> flags) where T : unmanaged, Enum
     {
         foreach (var flag in flags)

@@ -11,10 +11,14 @@ public class FlagsTests
     public void AreFlagsDefined()
     {
         foreach (Flags f in Enum.GetValues(typeof(Flags)))
+        {
             f.AreFlagsDefined().ShouldBeTrue();
+            f.IsValid().ShouldBeTrue();
+        }
 
         ((Flags)16).AreFlagsDefined().ShouldBeFalse();
-        EnumFlagsInfo<Flags>.AllDefinedFlags.ShouldBe(Flags.All);
+
+        // EnumFlagsInfo<Flags>.AllDefinedFlags.ShouldBe(Flags.All);
     }
 
     [TestMethod]
@@ -31,10 +35,10 @@ public class FlagsTests
     public void SplitNone()
     {
         var splitFlags = Flags.None.SplitFlags().ToList();
-        splitFlags.ShouldBe([Flags.None]);
+        splitFlags.ShouldBe([]);
 
         splitFlags = Flags.None.SplitFlags(SplitFlagsOptions.AllMatchingFlags).ToList();
-        splitFlags.ShouldBe([Flags.None]);
+        splitFlags.ShouldBe([]);
     }
 
     [TestMethod]

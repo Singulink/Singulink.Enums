@@ -90,7 +90,12 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
             if (!valueToNameLookup.ContainsKey(value))
                 valueToNameLookup.Add(value, name);
 #endif
-            names[Enum<T>.BinarySearchValues(value)] = name;
+            int nameIndex = Enum<T>.GetFirstValueIndex(value);
+
+            while (names[nameIndex] is not null)
+                nameIndex++;
+
+            names[nameIndex] = name;
         }
 
         _nameToValueLookup = nameToValueLookup.ToFrozenDictionary(nameComparer);
@@ -102,7 +107,11 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
     public string GetName(T value)
     {
         if (!TryGetName(value, out string name))
-            throw new MissingMemberException($"An enumeration with the value '{value}' was not found.");
+        {
+            [DoesNotReturn]
+            static void Throw(T value) => throw new MissingMemberException($"An enumeration with the value '{value}' was not found.");
+            Throw(value);
+        }
 
         return name;
     }
@@ -111,7 +120,11 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
     public T GetValue(string name)
     {
         if (!TryGetValue(name, out T value))
-            throw new MissingMemberException($"An enumeration with the name '{name}' was not found.");
+        {
+            [DoesNotReturn]
+            static void Throw(string name) => throw new MissingMemberException($"An enumeration with the name '{name}' was not found.");
+            Throw(name);
+        }
 
         return value;
     }
@@ -132,13 +145,14 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
     [SkipLocalsInit]
     public unsafe string AsString(T value, SplitFlagsOptions flagsOptions)
     {
-        if (Enum<T>.IsFlagsEnum && !flagsOptions.IsValid())
-            throw new ArgumentException("Value of options flags is invalid.", nameof(flagsOptions));
+        flagsOptions.EnsureValid(nameof(flagsOptions));
 
         if (EqualityComparer<T>.Default.Equals(value, default))
-            return Enum<T>.DefaultIndex >= 0 ? _names[Enum<T>.DefaultIndex] : (Enum<T>.IsFlagsEnum ? string.Empty : "0");
+            return Enum<T>.DefaultIndex >= 0 ? _names[Enum<T>.DefaultIndex] : "0";
 
-        if (!Enum<T>.IsFlagsEnum || !flagsOptions.HasAllFlags(SplitFlagsOptions.AllMatchingFlags))
+        bool allMatchingFlags = flagsOptions.HasAllFlags(SplitFlagsOptions.AllMatchingFlags);
+
+        if (!Enum<T>.IsFlagsEnum || !allMatchingFlags)
         {
             if (TryGetName(value, out string name))
                 return name;
@@ -149,32 +163,43 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
 
         // We have a flags enum that is not a simple value in the lookup or a default value.
 
-        bool doStackAlloc = Enum<T>.Values.Length <= 79 || !flagsOptions.HasAllFlags(SplitFlagsOptions.AllMatchingFlags);
+        // If AllMatchingFlags is not specified then max possible number of matched flags is 64, otherwise it's the number of defined flags.
+        // AllMatching flags will be rare and even more rare with > 64 flags so we stack alloc for the common case.
 
+        const int MaxStackAllocLength = 64;
+        bool doStackAlloc = Enum<T>.Values.Length <= MaxStackAllocLength || !allMatchingFlags;
         int[] rented = null;
+        Span<int> foundItems = doStackAlloc ? stackalloc int[MaxStackAllocLength] : (rented = ArrayPool<int>.Shared.Rent(Enum<T>.Values.Length));
 
-        // Needs one extra slot for possible remainder
-        Span<int> foundItems = doStackAlloc ? stackalloc int[80] : (rented = ArrayPool<int>.Shared.Rent(Enum<T>.Values.Length + 1));
-        EnumExtensions.SplitFlagsDescending(value, flagsOptions, foundItems, out int foundItemsCount, out T remainder);
-        foundItems = foundItems[..foundItemsCount];
+        EnumExtensions.SplitFlagsDescending(value, allMatchingFlags, foundItems, out int foundItemsCount, out T remainder);
 
-        int resultLength = 0;
-
-        foreach (int item in foundItems)
-            resultLength += _names[item].Length;
+        int resultLength;
 
         bool skipRemainder = EqualityComparer<T>.Default.Equals(remainder, default) || flagsOptions.HasAllFlags(SplitFlagsOptions.ExcludeRemainder);
         string remainderString = null;
 
         if (skipRemainder)
         {
-            resultLength += _toStringSeparator.Length * (foundItemsCount - 1);
+            if (foundItemsCount is 0)
+                return Enum<T>.DefaultIndex >= 0 ? _names[Enum<T>.DefaultIndex] : "0";
+
+            resultLength = _toStringSeparator.Length * (foundItemsCount - 1);
         }
         else
         {
+            flagsOptions.ThrowIfThrowOnRemainderSet(nameof(value));
             remainderString = UnderlyingOperations.ToString(remainder);
-            resultLength += remainderString.Length + (_toStringSeparator.Length * foundItemsCount);
+
+            if (foundItemsCount is 0)
+                return remainderString;
+
+            resultLength = (_toStringSeparator.Length * foundItemsCount) + remainderString.Length;
         }
+
+        foundItems = foundItems[..foundItemsCount];
+
+        foreach (int item in foundItems)
+            resultLength += _names[item].Length;
 
         return StringMethods.Create(resultLength, (foundItemsPtr: (nint)(&foundItems), remainderString), (chars, state) => {
             var foundItems = *(ReadOnlySpan<int>*)state.foundItemsPtr;

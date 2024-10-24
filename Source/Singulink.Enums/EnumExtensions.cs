@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using static System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
 
 namespace Singulink.Enums;
@@ -9,9 +10,38 @@ namespace Singulink.Enums;
 public static partial class EnumExtensions
 {
     /// <summary>
-    /// Determines whether the value's flags are all defined.
+    /// Determines whether the value's flags are all defined and they are a valid combination of flags.
     /// </summary>
-    public static bool AreFlagsDefined<T>(this T value) where T : unmanaged, Enum => EnumFlagsInfo<T>.AllDefinedFlags.HasAllFlags(value);
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool AreFlagsDefined<[DynamicallyAccessedMembers(PublicFields)] T>(this T value) where T : unmanaged, Enum
+    {
+        Enum<T>.EnsureIsFlagsEnum();
+
+        if (EnumFlagsInfo<T>.AreAllFlagsDefinedBySingleBits)
+            return EnumFlagsInfo<T>.AllSingleBitFlags.HasAllFlags(value);
+
+        if (EnumFlagsInfo<T>.AllSingleBitFlags.HasAllFlags(value))
+            return true;
+
+        if (EnumFlagsInfo<T>.HasSingleMultiBitValue)
+        {
+            return value.HasAllFlags(EnumFlagsInfo<T>.SingleMultiBitValue) &&
+                  EnumFlagsInfo<T>.AllSingleBitFlags.HasAllFlags(value.ClearFlags(EnumFlagsInfo<T>.SingleMultiBitValue));
+        }
+
+        foreach (var multiBitValue in EnumFlagsInfo<T>.MultiBitValuesDescending)
+        {
+            if (value.HasAllFlags(multiBitValue))
+            {
+                value = value.ClearFlags(multiBitValue);
+
+                if (EnumFlagsInfo<T>.AllSingleBitFlags.HasAllFlags(value))
+                    return true;
+            }
+        }
+
+        return false;
+    }
 
     /// <summary>
     /// Uses the custom <see cref="IEnumValidatorAttribute{T}"/> if available to check if the value is valid, otherwise checks whether the value is defined
@@ -21,6 +51,7 @@ public static partial class EnumExtensions
     /// <para>This method is equivalent to calling <see cref="IsDefined{T}(T)"/> on regular enumerations or <see cref="AreFlagsDefined{T}(T)"/> on flags
     /// enumerations that don't have custom validator attributes.</para>
     /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsValid<[DynamicallyAccessedMembers(PublicFields)] T>(this T value) where T : unmanaged, Enum
     {
         if (EnumValidation<T>.ValidatorAttribute is not null and var attribute)
@@ -32,26 +63,50 @@ public static partial class EnumExtensions
     /// <summary>
     /// Determines whether the value is defined.
     /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool IsDefined<[DynamicallyAccessedMembers(PublicFields)] T>(this T value) where T : unmanaged, Enum
     {
-        if (EnumRangeInfo<T>.IsContinuous) {
-            int result = Comparer<T>.Default.Compare(value, EnumRangeInfo<T>.DefinedMin);
+        if (EqualityComparer<T>.Default.Equals(value, default))
+            return Enum<T>.DefaultIndex >= 0;
 
-            return result is 0 || (result > 0 && Comparer<T>.Default.Compare(value, EnumRangeInfo<T>.DefinedMax) <= 0);
+        if (Enum<T>.IsFlagsEnum)
+        {
+            if (value.HasSingleBitSet())
+                return EnumFlagsInfo<T>.AllSingleBitFlags.HasAllFlags(value);
+
+            if (EnumFlagsInfo<T>.HasSingleMultiBitValue)
+                return EqualityComparer<T>.Default.Equals(value, EnumFlagsInfo<T>.SingleMultiBitValue);
+
+            for (int i = 0; i < EnumFlagsInfo<T>.MultiBitValuesDescending.Length; i++)
+            {
+                if (EqualityComparer<T>.Default.Equals(value, EnumFlagsInfo<T>.MultiBitValuesDescending[i]))
+                    return true;
+            }
+
+            return false;
         }
 
-        return Enum<T>.BinarySearchValues(value) >= 0;
+        if (EnumRangeInfo<T>.IsContinuous) {
+            return Comparer<T>.Default.Compare(value, EnumRangeInfo<T>.DefinedMin) >= 0 &&
+                   Comparer<T>.Default.Compare(value, EnumRangeInfo<T>.DefinedMax) <= 0;
+        }
+
+        return Enum<T>.GetFirstValueIndex(value) >= 0;
     }
 
     /// <summary>
     /// Gets the first enumeration name with the given value.
     /// </summary>
     /// <param name="value">The enumeration value.</param>
-    /// <exception cref=" MissingMemberException">An enumeration with the specified value was not found.</exception>
+    /// <exception cref="MissingMemberException">An enumeration with the specified value was not found.</exception>
     public static string GetName<[DynamicallyAccessedMembers(PublicFields)] T>(this T value) where T : unmanaged, Enum
     {
         if (!TryGetName(value, out string name))
-            throw new MissingMemberException($"An enumeration with the value '{value}' was not found.");
+        {
+            [DoesNotReturn]
+            static void Throw(T value) => throw new MissingMemberException($"An enumeration with the value '{value}' was not found.");
+            Throw(value);
+        }
 
         return name;
     }
@@ -85,7 +140,7 @@ public static partial class EnumExtensions
     public static bool TryGetName<[DynamicallyAccessedMembers(PublicFields)] T>(this T value, [NotNullWhen(true)] out string? name)
         where T : unmanaged, Enum
     {
-        int index = Enum<T>.BinarySearchValues(value);
+        int index = Enum<T>.GetFirstValueIndex(value);
 
         if (index < 0)
         {
@@ -95,5 +150,34 @@ public static partial class EnumExtensions
 
         name = Enum<T>.Names[index];
         return true;
+    }
+
+    internal static unsafe bool HasSingleBitSet<T>(this T value) where T : unmanaged, Enum
+    {
+        if (EqualityComparer<T>.Default.Equals(value, default))
+            return false;
+
+        if (sizeof(T) is 1)
+        {
+            byte v = UnsafeMethods.BitCast<T, byte>(value);
+            return (v & (v - 1)) == 0;
+        }
+        else if (sizeof(T) is 2)
+        {
+            ushort v = UnsafeMethods.BitCast<T, ushort>(value);
+            return (v & (v - 1)) == 0;
+        }
+        else if (sizeof(T) is 4)
+        {
+            uint v = UnsafeMethods.BitCast<T, uint>(value);
+            return (v & (v - 1)) == 0;
+        }
+        else if (sizeof(T) is 8)
+        {
+            ulong v = UnsafeMethods.BitCast<T, ulong>(value);
+            return (v & (v - 1)) == 0;
+        }
+
+        throw new NotSupportedException();
     }
 }

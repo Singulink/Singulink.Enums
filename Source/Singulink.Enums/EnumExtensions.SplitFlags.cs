@@ -11,30 +11,36 @@ namespace Singulink.Enums;
 public static partial class EnumExtensions
 {
     /// <summary>
-    /// Splits the value into the defined flags that make up the value, plus the remainder (if <see cref="SplitFlagsOptions.ExcludeRemainder"/> is not set).
+    /// Splits the value into the defined flags that make up the value, plus any remainder (if <see cref="SplitFlagsOptions.ExcludeRemainder"/> is not set).
     /// </summary>
     /// <param name="value">The value to split.</param>
     /// <param name="options">The options to use for the splitting operation.</param>
+    /// <remarks>
+    /// If <see cref="SplitFlagsOptions.ExcludeRemainder"/> is not set and there is a remainder that cannot be represented by any defined flags then its value
+    /// is appended to the end of the resulting list. You can check if the last element is a remainder by calling <see cref="EnumExtensions.IsDefined{T}(T)"/>
+    /// on it. You can also exclude the remainder or throw an exception if there is a remainder via the <paramref name="options"/> parameter.
+    /// </remarks>
     [SkipLocalsInit]
     public static IReadOnlyList<T> SplitFlags<[DynamicallyAccessedMembers(PublicFields)] T>(this T value, SplitFlagsOptions options = SplitFlagsOptions.None)
         where T : unmanaged, Enum
     {
-        if (!Enum<T>.IsFlagsEnum)
-            throw new InvalidOperationException($"Type '{typeof(T)}' is not a flags enumeration.");
-
-        if (!options.IsValid())
-            throw new ArgumentException("Value of options flags is invalid.", nameof(options));
+        Enum<T>.EnsureIsFlagsEnum();
+        options.EnsureValid(nameof(options));
 
         if (EqualityComparer<T>.Default.Equals(value, default))
-            return EnumFlagsInfo<T>.DefaultValueList;
+            return [];
 
-        bool doStackAlloc = Enum<T>.Values.Length <= 79 || !options.HasAllFlags(SplitFlagsOptions.AllMatchingFlags);
+        bool allMatchingFlags = options.HasAllFlags(SplitFlagsOptions.AllMatchingFlags);
 
+        // If AllMatchingFlags is not specified then max possible number of matched flags is 64, otherwise it's the number of defined flags.
+        // AllMatching flags will be rare and even more rare with > 64 flags so we stack alloc for the common case.
+
+        const int MaxStackAllocLength = 64;
+        bool doStackAlloc = Enum<T>.Values.Length <= MaxStackAllocLength || !allMatchingFlags;
         int[] rented = null;
+        Span<int> foundItems = doStackAlloc ? stackalloc int[MaxStackAllocLength] : (rented = ArrayPool<int>.Shared.Rent(Enum<T>.Values.Length));
 
-        // Needs one extra slot for possible remainder
-        Span<int> foundItems = doStackAlloc ? stackalloc int[80] : (rented = ArrayPool<int>.Shared.Rent(Enum<T>.Values.Length + 1));
-        SplitFlagsDescending(value, options, foundItems, out int foundItemsCount, out T remainder);
+        SplitFlagsDescending(value, allMatchingFlags, foundItems, out int foundItemsCount, out T remainder);
 
         bool skipRemainder = EqualityComparer<T>.Default.Equals(remainder, default) || options.HasAllFlags(SplitFlagsOptions.ExcludeRemainder);
         T[] results;
@@ -66,7 +72,7 @@ public static partial class EnumExtensions
 
     internal static void SplitFlagsDescending<[DynamicallyAccessedMembers(PublicFields)] T>(
         T value,
-        SplitFlagsOptions options,
+        bool allMatchingFlags,
         Span<int> foundItems,
         out int foundItemsCount,
         out T remainder)
@@ -75,7 +81,7 @@ public static partial class EnumExtensions
         foundItemsCount = 0;
         remainder = value;
 
-        if (options.HasAllFlags(SplitFlagsOptions.AllMatchingFlags))
+        if (allMatchingFlags)
         {
             for (int i = Enum<T>.Values.Length - 1; i >= 0; i--)
             {

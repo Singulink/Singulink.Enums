@@ -49,6 +49,15 @@ public static partial class EnumExtensions
     }
 
     /// <inheritdoc cref="SetFlags{T}(T, T)"/>
+    public static T SetFlags<T>(this T value, ReadOnlySpan<T> flags) where T : unmanaged, Enum
+    {
+        foreach (var flag in flags)
+            value = value.SetFlags(flag);
+
+        return value;
+    }
+
+    /// <inheritdoc cref="SetFlags{T}(T, T)"/>
     public static T SetFlags<T>(this T value, IEnumerable<T> flags) where T : unmanaged, Enum
     {
         foreach (var flag in flags)

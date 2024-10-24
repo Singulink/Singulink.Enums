@@ -8,154 +8,268 @@ using BenchmarkDotNet.Running;
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
 public class Program
 {
-    private readonly AttributeTargets _singleDefinedValue = AttributeTargets.All;
-    private readonly AttributeTargets _multipleDefinedValues = AttributeTargets.All & ~AttributeTargets.Assembly;
+    private readonly AttributeTargets[] _allValues = Enum.GetValues<AttributeTargets>();
+    private readonly AttributeTargets _singleAllFlagsValue = AttributeTargets.All;
+    private readonly AttributeTargets _manySingleFlags = AttributeTargets.All & ~AttributeTargets.Assembly;
 
     private bool _boolResult;
     private AttributeTargets _enumResult;
 
-    [BenchmarkCategory("HasAllFlags"), Benchmark(Baseline = true)]
+    [BenchmarkCategory("HasAllFlags"), Benchmark(Baseline = true, OperationsPerInvoke = 10)]
     public void HasAllFlags_Singulink()
     {
-        _boolResult = Singulink.Enums.EnumExtensions.HasAllFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _boolResult = Singulink.Enums.EnumExtensions.HasAllFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _boolResult = Singulink.Enums.EnumExtensions.HasAllFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _boolResult = Singulink.Enums.EnumExtensions.HasAllFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _boolResult = Singulink.Enums.EnumExtensions.HasAllFlags(_singleDefinedValue, AttributeTargets.Assembly);
+        var value = _singleAllFlagsValue;
+        _boolResult = Singulink.Enums.EnumExtensions.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAllFlags(value, AttributeTargets.Assembly);
     }
 
-    [BenchmarkCategory("HasAllFlags"), Benchmark]
+    [BenchmarkCategory("HasAllFlags"), Benchmark(OperationsPerInvoke = 10)]
     public void HasAllFlags_EnumsNet()
     {
-        _boolResult = EnumsNET.FlagEnums.HasAllFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _boolResult = EnumsNET.FlagEnums.HasAllFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _boolResult = EnumsNET.FlagEnums.HasAllFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _boolResult = EnumsNET.FlagEnums.HasAllFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _boolResult = EnumsNET.FlagEnums.HasAllFlags(_singleDefinedValue, AttributeTargets.Assembly);
+        var value = _singleAllFlagsValue;
+        _boolResult = EnumsNET.FlagEnums.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAllFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAllFlags(value, AttributeTargets.Assembly);
     }
 
-    [BenchmarkCategory("HasAllFlags"), Benchmark]
+    [BenchmarkCategory("HasAllFlags"), Benchmark(OperationsPerInvoke = 10)]
     public void HasAllFlags_System()
     {
-        _boolResult = _singleDefinedValue.HasFlag(AttributeTargets.Assembly);
-        _boolResult = _singleDefinedValue.HasFlag(AttributeTargets.Assembly);
-        _boolResult = _singleDefinedValue.HasFlag(AttributeTargets.Assembly);
-        _boolResult = _singleDefinedValue.HasFlag(AttributeTargets.Assembly);
-        _boolResult = _singleDefinedValue.HasFlag(AttributeTargets.Assembly);
+        var value = _singleAllFlagsValue;
+        _boolResult = value.HasFlag(AttributeTargets.Assembly);
+        _boolResult = value.HasFlag(AttributeTargets.Assembly);
+        _boolResult = value.HasFlag(AttributeTargets.Assembly);
+        _boolResult = value.HasFlag(AttributeTargets.Assembly);
+        _boolResult = value.HasFlag(AttributeTargets.Assembly);
+        _boolResult = value.HasFlag(AttributeTargets.Assembly);
+        _boolResult = value.HasFlag(AttributeTargets.Assembly);
+        _boolResult = value.HasFlag(AttributeTargets.Assembly);
+        _boolResult = value.HasFlag(AttributeTargets.Assembly);
+        _boolResult = value.HasFlag(AttributeTargets.Assembly);
     }
 
-    [BenchmarkCategory("HasAnyFlags"), Benchmark(Baseline = true)]
+    [BenchmarkCategory("HasAnyFlags"), Benchmark(Baseline = true, OperationsPerInvoke = 10)]
     public void HasAnyFlags_Singulink()
     {
-        _boolResult = Singulink.Enums.EnumExtensions.HasAnyFlag(_singleDefinedValue, AttributeTargets.Assembly);
-        _boolResult = Singulink.Enums.EnumExtensions.HasAnyFlag(_singleDefinedValue, AttributeTargets.Assembly);
-        _boolResult = Singulink.Enums.EnumExtensions.HasAnyFlag(_singleDefinedValue, AttributeTargets.Assembly);
-        _boolResult = Singulink.Enums.EnumExtensions.HasAnyFlag(_singleDefinedValue, AttributeTargets.Assembly);
-        _boolResult = Singulink.Enums.EnumExtensions.HasAnyFlag(_singleDefinedValue, AttributeTargets.Assembly);
+        var value = _singleAllFlagsValue;
+        _boolResult = Singulink.Enums.EnumExtensions.HasAnyFlag(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAnyFlag(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAnyFlag(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAnyFlag(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAnyFlag(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAnyFlag(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAnyFlag(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAnyFlag(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAnyFlag(value, AttributeTargets.Assembly);
+        _boolResult = Singulink.Enums.EnumExtensions.HasAnyFlag(value, AttributeTargets.Assembly);
     }
 
-    [BenchmarkCategory("HasAnyFlags"), Benchmark]
+    [BenchmarkCategory("HasAnyFlags"), Benchmark(OperationsPerInvoke = 10)]
     public void HasAnyFlags_EnumsNet()
     {
-        _boolResult = EnumsNET.FlagEnums.HasAnyFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _boolResult = EnumsNET.FlagEnums.HasAnyFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _boolResult = EnumsNET.FlagEnums.HasAnyFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _boolResult = EnumsNET.FlagEnums.HasAnyFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _boolResult = EnumsNET.FlagEnums.HasAnyFlags(_singleDefinedValue, AttributeTargets.Assembly);
+        var value = _singleAllFlagsValue;
+        _boolResult = EnumsNET.FlagEnums.HasAnyFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAnyFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAnyFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAnyFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAnyFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAnyFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAnyFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAnyFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAnyFlags(value, AttributeTargets.Assembly);
+        _boolResult = EnumsNET.FlagEnums.HasAnyFlags(value, AttributeTargets.Assembly);
     }
 
-    [BenchmarkCategory("HasAnyFlags"), Benchmark]
+    [BenchmarkCategory("HasAnyFlags"), Benchmark(OperationsPerInvoke = 10)]
     public void HasAnyFlags_Operator()
     {
-        _boolResult = (_singleDefinedValue & AttributeTargets.Assembly) != 0;
-        _boolResult = (_singleDefinedValue & AttributeTargets.Assembly) != 0;
-        _boolResult = (_singleDefinedValue & AttributeTargets.Assembly) != 0;
-        _boolResult = (_singleDefinedValue & AttributeTargets.Assembly) != 0;
-        _boolResult = (_singleDefinedValue & AttributeTargets.Assembly) != 0;
+        var value = _singleAllFlagsValue;
+        _boolResult = (value & AttributeTargets.Assembly) != 0;
+        _boolResult = (value & AttributeTargets.Assembly) != 0;
+        _boolResult = (value & AttributeTargets.Assembly) != 0;
+        _boolResult = (value & AttributeTargets.Assembly) != 0;
+        _boolResult = (value & AttributeTargets.Assembly) != 0;
+        _boolResult = (value & AttributeTargets.Assembly) != 0;
+        _boolResult = (value & AttributeTargets.Assembly) != 0;
+        _boolResult = (value & AttributeTargets.Assembly) != 0;
+        _boolResult = (value & AttributeTargets.Assembly) != 0;
+        _boolResult = (value & AttributeTargets.Assembly) != 0;
     }
 
-    [BenchmarkCategory("SetFlags"), Benchmark(Baseline = true)]
+    [BenchmarkCategory("SetFlags"), Benchmark(Baseline = true, OperationsPerInvoke = 10)]
     public void SetFlags_Singulink()
     {
-        _enumResult = Singulink.Enums.EnumExtensions.SetFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _enumResult = Singulink.Enums.EnumExtensions.SetFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _enumResult = Singulink.Enums.EnumExtensions.SetFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _enumResult = Singulink.Enums.EnumExtensions.SetFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _enumResult = Singulink.Enums.EnumExtensions.SetFlags(_singleDefinedValue, AttributeTargets.Assembly);
+        var value = _singleAllFlagsValue;
+        _enumResult = Singulink.Enums.EnumExtensions.SetFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.SetFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.SetFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.SetFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.SetFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.SetFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.SetFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.SetFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.SetFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.SetFlags(value, AttributeTargets.Assembly);
     }
 
-    [BenchmarkCategory("SetFlags"), Benchmark]
+    [BenchmarkCategory("SetFlags"), Benchmark(OperationsPerInvoke = 10)]
     public void SetFlags_EnumsNet()
     {
-        _enumResult = EnumsNET.FlagEnums.CombineFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _enumResult = EnumsNET.FlagEnums.CombineFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _enumResult = EnumsNET.FlagEnums.CombineFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _enumResult = EnumsNET.FlagEnums.CombineFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _enumResult = EnumsNET.FlagEnums.CombineFlags(_singleDefinedValue, AttributeTargets.Assembly);
+        var value = _singleAllFlagsValue;
+        _enumResult = EnumsNET.FlagEnums.CombineFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.CombineFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.CombineFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.CombineFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.CombineFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.CombineFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.CombineFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.CombineFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.CombineFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.CombineFlags(value, AttributeTargets.Assembly);
     }
 
-    [BenchmarkCategory("SetFlags"), Benchmark]
+    [BenchmarkCategory("SetFlags"), Benchmark(OperationsPerInvoke = 10)]
     public void SetFlags_Operator()
     {
-        _enumResult = _singleDefinedValue | AttributeTargets.Assembly;
-        _enumResult = _singleDefinedValue | AttributeTargets.Assembly;
-        _enumResult = _singleDefinedValue | AttributeTargets.Assembly;
-        _enumResult = _singleDefinedValue | AttributeTargets.Assembly;
-        _enumResult = _singleDefinedValue | AttributeTargets.Assembly;
+        var value = _singleAllFlagsValue;
+        _enumResult = value | AttributeTargets.Assembly;
+        _enumResult = value | AttributeTargets.Assembly;
+        _enumResult = value | AttributeTargets.Assembly;
+        _enumResult = value | AttributeTargets.Assembly;
+        _enumResult = value | AttributeTargets.Assembly;
+        _enumResult = value | AttributeTargets.Assembly;
+        _enumResult = value | AttributeTargets.Assembly;
+        _enumResult = value | AttributeTargets.Assembly;
+        _enumResult = value | AttributeTargets.Assembly;
+        _enumResult = value | AttributeTargets.Assembly;
     }
 
-    [BenchmarkCategory("ClearFlags"), Benchmark(Baseline = true)]
+    [BenchmarkCategory("ClearFlags"), Benchmark(Baseline = true, OperationsPerInvoke = 10)]
     public void ClearFlags_Singulink()
     {
-        _enumResult = Singulink.Enums.EnumExtensions.ClearFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _enumResult = Singulink.Enums.EnumExtensions.ClearFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _enumResult = Singulink.Enums.EnumExtensions.ClearFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _enumResult = Singulink.Enums.EnumExtensions.ClearFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _enumResult = Singulink.Enums.EnumExtensions.ClearFlags(_singleDefinedValue, AttributeTargets.Assembly);
+        var value = _singleAllFlagsValue;
+        _enumResult = Singulink.Enums.EnumExtensions.ClearFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.ClearFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.ClearFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.ClearFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.ClearFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.ClearFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.ClearFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.ClearFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.ClearFlags(value, AttributeTargets.Assembly);
+        _enumResult = Singulink.Enums.EnumExtensions.ClearFlags(value, AttributeTargets.Assembly);
     }
 
-    [BenchmarkCategory("ClearFlags"), Benchmark]
+    [BenchmarkCategory("ClearFlags"), Benchmark(OperationsPerInvoke = 10)]
     public void ClearFlags_EnumsNet()
     {
-        _enumResult = EnumsNET.FlagEnums.RemoveFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _enumResult = EnumsNET.FlagEnums.RemoveFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _enumResult = EnumsNET.FlagEnums.RemoveFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _enumResult = EnumsNET.FlagEnums.RemoveFlags(_singleDefinedValue, AttributeTargets.Assembly);
-        _enumResult = EnumsNET.FlagEnums.RemoveFlags(_singleDefinedValue, AttributeTargets.Assembly);
+        var value = _singleAllFlagsValue;
+        _enumResult = EnumsNET.FlagEnums.RemoveFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.RemoveFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.RemoveFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.RemoveFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.RemoveFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.RemoveFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.RemoveFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.RemoveFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.RemoveFlags(value, AttributeTargets.Assembly);
+        _enumResult = EnumsNET.FlagEnums.RemoveFlags(value, AttributeTargets.Assembly);
     }
 
-    [BenchmarkCategory("ClearFlags"), Benchmark]
+    [BenchmarkCategory("ClearFlags"), Benchmark(OperationsPerInvoke = 10)]
     public void ClearFlags_Operator()
     {
-        _enumResult = _singleDefinedValue & ~AttributeTargets.Assembly;
-        _enumResult = _singleDefinedValue & ~AttributeTargets.Assembly;
-        _enumResult = _singleDefinedValue & ~AttributeTargets.Assembly;
-        _enumResult = _singleDefinedValue & ~AttributeTargets.Assembly;
-        _enumResult = _singleDefinedValue & ~AttributeTargets.Assembly;
+        var value = _singleAllFlagsValue;
+        _enumResult = value & ~AttributeTargets.Assembly;
+        _enumResult = value & ~AttributeTargets.Assembly;
+        _enumResult = value & ~AttributeTargets.Assembly;
+        _enumResult = value & ~AttributeTargets.Assembly;
+        _enumResult = value & ~AttributeTargets.Assembly;
+        _enumResult = value & ~AttributeTargets.Assembly;
+        _enumResult = value & ~AttributeTargets.Assembly;
+        _enumResult = value & ~AttributeTargets.Assembly;
+        _enumResult = value & ~AttributeTargets.Assembly;
+        _enumResult = value & ~AttributeTargets.Assembly;
+    }
+
+    [BenchmarkCategory("IsDefined"), Benchmark(Baseline = true, OperationsPerInvoke = 16)]
+    public void IsDefined_Singulink()
+    {
+        foreach (var v in _allValues)
+            _boolResult = Singulink.Enums.EnumExtensions.IsDefined(v);
+    }
+
+    [BenchmarkCategory("IsDefined"), Benchmark(OperationsPerInvoke = 16)]
+    public void IsDefined_EnumsNet()
+    {
+        foreach (var v in _allValues)
+            _boolResult = EnumsNET.Enums.IsDefined(v);
+    }
+
+    [BenchmarkCategory("IsDefined"), Benchmark(OperationsPerInvoke = 16)]
+    public void IsDefined_System()
+    {
+        foreach (var v in _allValues)
+            _boolResult = Enum.IsDefined(v);
+    }
+
+    [BenchmarkCategory("AreFlagsDefined"), Benchmark(Baseline = true, OperationsPerInvoke = 10)]
+    public void AreFlagsDefined_Singulink()
+    {
+        var value = _singleAllFlagsValue;
+        _boolResult = Singulink.Enums.EnumExtensions.AreFlagsDefined(value);
+        _boolResult = Singulink.Enums.EnumExtensions.AreFlagsDefined(value);
+        _boolResult = Singulink.Enums.EnumExtensions.AreFlagsDefined(value);
+        _boolResult = Singulink.Enums.EnumExtensions.AreFlagsDefined(value);
+        _boolResult = Singulink.Enums.EnumExtensions.AreFlagsDefined(value);
+        _boolResult = Singulink.Enums.EnumExtensions.AreFlagsDefined(value);
+        _boolResult = Singulink.Enums.EnumExtensions.AreFlagsDefined(value);
+        _boolResult = Singulink.Enums.EnumExtensions.AreFlagsDefined(value);
+        _boolResult = Singulink.Enums.EnumExtensions.AreFlagsDefined(value);
+        _boolResult = Singulink.Enums.EnumExtensions.AreFlagsDefined(value);
+    }
+
+    [BenchmarkCategory("AreFlagsDefined"), Benchmark(OperationsPerInvoke = 10)]
+    public void AreFlagsDefined_EnumsNet()
+    {
+        var value = _singleAllFlagsValue;
+        _boolResult = EnumsNET.FlagEnums.IsValidFlagCombination(value);
+        _boolResult = EnumsNET.FlagEnums.IsValidFlagCombination(value);
+        _boolResult = EnumsNET.FlagEnums.IsValidFlagCombination(value);
+        _boolResult = EnumsNET.FlagEnums.IsValidFlagCombination(value);
+        _boolResult = EnumsNET.FlagEnums.IsValidFlagCombination(value);
+        _boolResult = EnumsNET.FlagEnums.IsValidFlagCombination(value);
+        _boolResult = EnumsNET.FlagEnums.IsValidFlagCombination(value);
+        _boolResult = EnumsNET.FlagEnums.IsValidFlagCombination(value);
+        _boolResult = EnumsNET.FlagEnums.IsValidFlagCombination(value);
+        _boolResult = EnumsNET.FlagEnums.IsValidFlagCombination(value);
     }
 
     [BenchmarkCategory("SplitFlags"), Benchmark(Baseline = true)]
     public AttributeTargets SplitFlags_Singulink()
     {
-        return Singulink.Enums.EnumExtensions.SplitFlags(_multipleDefinedValues)[0];
+        return Singulink.Enums.EnumExtensions.SplitFlags(_manySingleFlags)[0];
     }
 
     [BenchmarkCategory("SplitFlags"), Benchmark]
     public AttributeTargets SplitFlags_EnumsNet()
     {
-        return EnumsNET.FlagEnums.GetFlags(_multipleDefinedValues)[0];
-    }
-
-    [BenchmarkCategory("IsValid"), Benchmark(Baseline = true)]
-    public bool IsValid_Singulink()
-    {
-        return Singulink.Enums.EnumExtensions.IsValid(_singleDefinedValue);
-    }
-
-    [BenchmarkCategory("IsValid"), Benchmark]
-    public bool IsValid_EnumsNet()
-    {
-        return EnumsNET.Enums.IsValid(_singleDefinedValue);
+        return EnumsNET.FlagEnums.GetFlags(_manySingleFlags)[0];
     }
 
     [BenchmarkCategory("ParseSingle"), Benchmark(Baseline = true)]
@@ -231,39 +345,39 @@ public class Program
     }
 
     [BenchmarkCategory("ToStringSingle"), Benchmark(Baseline = true)]
-    public string ToStringSingle_Singulink()
+    public string AsStringSingle_Singulink()
     {
-        return Singulink.Enums.EnumExtensions.AsString(_singleDefinedValue);
+        return Singulink.Enums.EnumExtensions.AsString(_singleAllFlagsValue);
     }
 
     [BenchmarkCategory("ToStringSingle"), Benchmark]
-    public string ToStringSingle_EnumsNet()
+    public string AsStringSingle_EnumsNet()
     {
-        return EnumsNET.Enums.AsString(_singleDefinedValue);
+        return EnumsNET.Enums.AsString(_singleAllFlagsValue);
     }
 
     [BenchmarkCategory("ToStringSingle"), Benchmark]
-    public string ToStringSingle_System()
+    public string AsStringSingle_System()
     {
-        return _singleDefinedValue.ToString();
+        return _singleAllFlagsValue.ToString();
     }
 
     [BenchmarkCategory("ToStringMultiple"), Benchmark(Baseline = true)]
-    public string ToStringMultiple_Singulink()
+    public string AsStringMultiple_Singulink()
     {
-        return Singulink.Enums.EnumExtensions.AsString(_multipleDefinedValues);
+        return Singulink.Enums.EnumExtensions.AsString(_manySingleFlags);
     }
 
     [BenchmarkCategory("ToStringMultiple"), Benchmark]
-    public string ToStringMultiple_EnumsNet()
+    public string AsStringMultiple_EnumsNet()
     {
-        return EnumsNET.Enums.AsString(_multipleDefinedValues);
+        return EnumsNET.Enums.AsString(_manySingleFlags);
     }
 
     [BenchmarkCategory("ToStringMultiple"), Benchmark]
-    public string ToStringMultiple_System()
+    public string AsStringMultiple_System()
     {
-        return _multipleDefinedValues.ToString();
+        return _manySingleFlags.ToString();
     }
 
     public static void Main()
@@ -272,7 +386,12 @@ public class Program
         Console.WriteLine();
         Console.ReadKey(true);
 
-        BenchmarkRunner.Run<Program>(args: new[] { "--unrollFactor", "64" });
+        BenchmarkRunner.Run<Program>(args: [
+            "--unrollFactor", "64",
+            "--anyCategories", "IsDefined",
+            //"SplitFlags",
+        ]);
+
         Console.ReadKey(true);
     }
 }

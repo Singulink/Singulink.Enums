@@ -9,69 +9,74 @@ public class FlagsConvertTests
     [TestMethod]
     public new void ToString()
     {
-        var parser = EnumConverter<FlagsEnum>.Default;
+        var converter = EnumConverter<FlagsEnum>.Default;
 
-        parser.AsString(FlagsEnum.All, SplitFlagsOptions.None).ShouldBe("All");
-        parser.AsString(FlagsEnum.All, SplitFlagsOptions.AllMatchingFlags).ShouldBe("A, B, C, D, All");
-        parser.AsString(FlagsEnum.A | FlagsEnum.D).ShouldBe("A, D");
+        converter.AsString(FlagsEnum.All, SplitFlagsOptions.None).ShouldBe("All");
+        converter.AsString(FlagsEnum.All, SplitFlagsOptions.AllMatchingFlags).ShouldBe("A, B, C, D, All");
+        converter.AsString(FlagsEnum.A | FlagsEnum.D).ShouldBe("A, D");
     }
 
     [TestMethod]
     public void ToStringCustomSeparator()
     {
-        var parser = new EnumConverter<FlagsEnum>(opt => opt.Separator = " | ");
+        var converter = new EnumConverter<FlagsEnum>(opt => opt.Separator = " | ");
 
-        parser.AsString(FlagsEnum.All, SplitFlagsOptions.None).ShouldBe("All");
-        parser.AsString(FlagsEnum.All, SplitFlagsOptions.AllMatchingFlags).ShouldBe("A | B | C | D | All");
-        parser.AsString(FlagsEnum.A | FlagsEnum.D).ShouldBe("A | D");
+        converter.AsString(FlagsEnum.All, SplitFlagsOptions.None).ShouldBe("All");
+        converter.AsString(FlagsEnum.All, SplitFlagsOptions.AllMatchingFlags).ShouldBe("A | B | C | D | All");
+        converter.AsString(FlagsEnum.A | FlagsEnum.D).ShouldBe("A | D");
     }
 
     [TestMethod]
     public void UndefinedValueToString()
     {
-        var parser = EnumConverter<FlagsEnum>.Default;
+        var converter = EnumConverter<FlagsEnum>.Default;
 
-        parser.AsString((FlagsEnum)16, SplitFlagsOptions.None).ShouldBe("16");
-        parser.AsString(FlagsEnum.A | FlagsEnum.D | (FlagsEnum)16, SplitFlagsOptions.AllMatchingFlags).ShouldBe("A, D, 16");
-        parser.AsString(FlagsEnum.All | (FlagsEnum)16, SplitFlagsOptions.AllMatchingFlags).ShouldBe("A, B, C, D, All, 16");
+        converter.AsString((FlagsEnum)16, SplitFlagsOptions.None).ShouldBe("16");
+        converter.AsString(FlagsEnum.A | FlagsEnum.D | (FlagsEnum)16, SplitFlagsOptions.AllMatchingFlags).ShouldBe("A, D, 16");
+        converter.AsString(FlagsEnum.A | FlagsEnum.D | (FlagsEnum)16, SplitFlagsOptions.AllMatchingFlags | SplitFlagsOptions.ExcludeRemainder).ShouldBe("A, D");
+        converter.AsString(FlagsEnum.All | (FlagsEnum)16, SplitFlagsOptions.AllMatchingFlags).ShouldBe("A, B, C, D, All, 16");
+        converter.AsString(FlagsEnum.All | (FlagsEnum)16, SplitFlagsOptions.ExcludeRemainder).ShouldBe("All");
     }
 
     [TestMethod]
     public void ToCustomNameString()
     {
-        var parser = new EnumConverter<FlagsEnum>(opt => opt.WithDisplayNameGetter());
+        var converter = new EnumConverter<FlagsEnum>(opt => opt.WithDisplayNameGetter());
 
-        parser.AsString(FlagsEnum.A | FlagsEnum.D).ShouldBe("A (Display), D (Display)");
-        parser.AsString(FlagsEnum.A | FlagsEnum.D, SplitFlagsOptions.None).ShouldBe("A (Display), D (Display)");
+        converter.AsString(FlagsEnum.A | FlagsEnum.D).ShouldBe("A (Display), D (Display)");
+        converter.AsString(FlagsEnum.A | FlagsEnum.D, SplitFlagsOptions.None).ShouldBe("A (Display), D (Display)");
     }
 
     [TestMethod]
     public void ToDefaultString()
     {
         default(FlagsEnum).AsString().ShouldBe("None");
-        default(NoDefaultFlags).AsString().ShouldBe(string.Empty);
+        ((FlagsEnum)16).AsString(SplitFlagsOptions.ExcludeRemainder).ShouldBe("None");
+
+        default(NoDefaultFlags).AsString().ShouldBe("0");
+        ((NoDefaultFlags)16).AsString(SplitFlagsOptions.ExcludeRemainder).ShouldBe("0");
     }
 
     [TestMethod]
     public void Parse()
     {
-        var parser = new EnumConverter<FlagsEnum>(opt => opt.Separator = " | ");
+        var converter = new EnumConverter<FlagsEnum>(opt => opt.Separator = " | ");
 
-        parser.Parse("All").ShouldBe(FlagsEnum.All);
-        parser.Parse("A | B | C | D | All").ShouldBe(FlagsEnum.All);
-        parser.Parse("A|D").ShouldBe(FlagsEnum.A | FlagsEnum.D);
+        converter.Parse(" All").ShouldBe(FlagsEnum.All);
+        converter.Parse("  A | B | C | D | All  ").ShouldBe(FlagsEnum.All);
+        converter.Parse("A|D ").ShouldBe(FlagsEnum.A | FlagsEnum.D);
     }
 
     [TestMethod]
     public void ParseSpaceSeparator()
     {
-        var parser = new EnumConverter<FlagsEnum>(opt => opt.Separator = " ");
+        var converter = new EnumConverter<FlagsEnum>(opt => opt.Separator = " ");
 
-        parser.Parse("All").ShouldBe(FlagsEnum.All);
-        parser.Parse(" All ").ShouldBe(FlagsEnum.All);
-        parser.Parse("  All  ").ShouldBe(FlagsEnum.All);
-        parser.Parse("  A B C   D  All  ").ShouldBe(FlagsEnum.All);
-        parser.Parse("A D").ShouldBe(FlagsEnum.A | FlagsEnum.D);
+        converter.Parse("All").ShouldBe(FlagsEnum.All);
+        converter.Parse(" All ").ShouldBe(FlagsEnum.All);
+        converter.Parse("  All  ").ShouldBe(FlagsEnum.All);
+        converter.Parse("  A B C   D  All  ").ShouldBe(FlagsEnum.All);
+        converter.Parse("A D").ShouldBe(FlagsEnum.A | FlagsEnum.D);
     }
 
     [TestMethod]
@@ -80,21 +85,21 @@ public class FlagsConvertTests
     [DataRow("     ")]
     public void ParseWhitespace(string s)
     {
-        var parser = EnumConverter<FlagsEnum>.Default;
-        Should.Throw<FormatException>(() => parser.Parse(s));
+        var converter = EnumConverter<FlagsEnum>.Default;
+        Should.Throw<FormatException>(() => converter.Parse(s));
 
-        parser = new EnumConverter<FlagsEnum>(opt => opt.Separator = " ");
-        Should.Throw<FormatException>(() => parser.Parse(s));
+        converter = new EnumConverter<FlagsEnum>(opt => opt.Separator = " ");
+        Should.Throw<FormatException>(() => converter.Parse(s));
     }
 
     [TestMethod]
     public void ParseCustomName()
     {
-        var parser = new EnumConverter<FlagsEnum>(opt => opt.WithDisplayNameGetter());
+        var converter = new EnumConverter<FlagsEnum>(opt => opt.WithDisplayNameGetter());
 
-        parser.Parse("All (Display)").ShouldBe(FlagsEnum.All);
-        parser.Parse("A (Display)  , B (Display)").ShouldBe(FlagsEnum.A | FlagsEnum.B);
-        parser.Parse("A (Display),D (Display),  32").ShouldBe(FlagsEnum.A | FlagsEnum.D | (FlagsEnum)32);
+        converter.Parse("All (Display)").ShouldBe(FlagsEnum.All);
+        converter.Parse("A (Display)  , B (Display)").ShouldBe(FlagsEnum.A | FlagsEnum.B);
+        converter.Parse("A (Display),D (Display),  32").ShouldBe(FlagsEnum.A | FlagsEnum.D | (FlagsEnum)32);
     }
 
     [TestMethod]
@@ -111,15 +116,15 @@ public class FlagsConvertTests
     [TestMethod]
     public void ParseInvalidSeparator()
     {
-        var parser = EnumConverter<FlagsEnum>.Default;
+        var converter = EnumConverter<FlagsEnum>.Default;
 
-        Should.Throw<FormatException>(() => parser.Parse("A,,B"));
-        Should.Throw<FormatException>(() => parser.Parse(" , "));
-        Should.Throw<FormatException>(() => parser.Parse(","));
-        Should.Throw<FormatException>(() => parser.Parse("A,"));
-        Should.Throw<FormatException>(() => parser.Parse("A, "));
-        Should.Throw<FormatException>(() => parser.Parse(",B"));
-        Should.Throw<FormatException>(() => parser.Parse(" ,B"));
+        Should.Throw<FormatException>(() => converter.Parse("A,,B"));
+        Should.Throw<FormatException>(() => converter.Parse(" , "));
+        Should.Throw<FormatException>(() => converter.Parse(","));
+        Should.Throw<FormatException>(() => converter.Parse("A,"));
+        Should.Throw<FormatException>(() => converter.Parse("A, "));
+        Should.Throw<FormatException>(() => converter.Parse(",B"));
+        Should.Throw<FormatException>(() => converter.Parse(" ,B"));
     }
 
     [TestMethod]

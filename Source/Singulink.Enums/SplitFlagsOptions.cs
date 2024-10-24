@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Singulink.Enums;
 
 /// <summary>
@@ -13,7 +15,7 @@ public enum SplitFlagsOptions
 
     /// <summary>
     /// Include all matching flags in the result, even if they are redundant. If this option is not specified, only the minimal set of flags are included.
-    /// A zero-value flag is only included if the value has no flags set, regardless of this option.
+    /// Zero-value flags are never included in a <see cref="EnumExtensions.SplitFlags{T}(T, SplitFlagsOptions)"/> result regardless of this option.
     /// </summary>
     AllMatchingFlags = 1,
 
@@ -27,4 +29,28 @@ public enum SplitFlagsOptions
     /// Throw <see cref="ArgumentException"/> if there is a remainder that cannot be represented by any defined flags.
     /// </summary>
     ThrowOnRemainder = 8,
+}
+
+#pragma warning disable SA1649 // File name should match first type name
+
+internal static class SplitFlagsOptionsExtensions
+{
+    public static void EnsureValid(this SplitFlagsOptions options, string paramName)
+    {
+        if (!options.AreFlagsDefined())
+        {
+            [MethodImpl(MethodImplOptions.NoInlining)]
+            static void Throw(string paramName) => throw new ArgumentException("Split flag options are invalid.", paramName);
+            Throw(paramName);
+        }
+    }
+
+    public static void ThrowIfThrowOnRemainderSet(this SplitFlagsOptions options, string valueParamName)
+    {
+        if (options.HasAllFlags(SplitFlagsOptions.ThrowOnRemainder))
+        {
+            static void Throw(string valueParamName) => throw new ArgumentException("The value contains a remainder with undefined flags.", nameof(valueParamName));
+            Throw(valueParamName);
+        }
+    }
 }

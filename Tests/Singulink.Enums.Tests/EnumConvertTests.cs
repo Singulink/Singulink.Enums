@@ -9,29 +9,29 @@ public class EnumConvertTests
     [TestMethod]
     public new void ToString()
     {
-        var parser = EnumConverter<NormalEnum>.Default;
+        var converter = EnumConverter<NormalEnum>.Default;
 
-        parser.AsString(NormalEnum.None).ShouldBe("None");
-        parser.AsString(NormalEnum.B).ShouldBe("B");
-        parser.AsString(NormalEnum.D).ShouldBe("D");
+        converter.AsString(NormalEnum.None).ShouldBe("None");
+        converter.AsString(NormalEnum.B).ShouldBe("B");
+        converter.AsString(NormalEnum.D).ShouldBe("D");
     }
 
     [TestMethod]
     public void UndefinedValueToString()
     {
-        var parser = EnumConverter<NormalEnum>.Default;
+        var converter = EnumConverter<NormalEnum>.Default;
 
-        parser.AsString((NormalEnum)3).ShouldBe("3");
-        parser.AsString((NormalEnum)12).ShouldBe("12");
+        converter.AsString((NormalEnum)3).ShouldBe("3");
+        converter.AsString((NormalEnum)12).ShouldBe("12");
     }
 
     [TestMethod]
     public void ToCustomNameString()
     {
-        var parser = new EnumConverter<NormalEnum>(opt => opt.WithDisplayNameGetter());
+        var converter = new EnumConverter<NormalEnum>(opt => opt.WithDisplayNameGetter());
 
-        parser.AsString(NormalEnum.None).ShouldBe("None (Display)");
-        parser.AsString(NormalEnum.C).ShouldBe("C (Display)");
+        converter.AsString(NormalEnum.None).ShouldBe("None (Display)");
+        converter.AsString(NormalEnum.C).ShouldBe("C (Display)");
     }
 
     [TestMethod]
@@ -44,37 +44,37 @@ public class EnumConvertTests
     [TestMethod]
     public void ParseWhitespace()
     {
-        var parser = EnumConverter<NormalEnum>.Default;
+        var converter = EnumConverter<NormalEnum>.Default;
 
-        Should.Throw<FormatException>(() => parser.Parse(string.Empty));
-        Should.Throw<FormatException>(() => parser.Parse(" "));
-        Should.Throw<FormatException>(() => parser.Parse("     "));
+        Should.Throw<FormatException>(() => converter.Parse(string.Empty));
+        Should.Throw<FormatException>(() => converter.Parse(" "));
+        Should.Throw<FormatException>(() => converter.Parse("     "));
     }
 
     [TestMethod]
     public void Parse()
     {
-        var parser = EnumConverter<NormalEnum>.Default;
+        var converter = EnumConverter<NormalEnum>.Default;
 
-        parser.Parse("A").ShouldBe(NormalEnum.A);
-        parser.Parse("C").ShouldBe(NormalEnum.C);
+        converter.Parse("A").ShouldBe(NormalEnum.A);
+        converter.Parse("C").ShouldBe(NormalEnum.C);
     }
 
     [TestMethod]
     public void ParseUndefined()
     {
-        var parser = EnumConverter<NormalEnum>.Default;
+        var converter = EnumConverter<NormalEnum>.Default;
 
-        parser.Parse("32").ShouldBe((NormalEnum)32);
-        parser.Parse("3").ShouldBe((NormalEnum)3);
+        converter.Parse("32").ShouldBe((NormalEnum)32);
+        converter.Parse("3").ShouldBe((NormalEnum)3);
     }
 
     [TestMethod]
     public void ParseMissing()
     {
-        var parser = EnumConverter<NormalEnum>.Default;
+        var converter = EnumConverter<NormalEnum>.Default;
 
-        Should.Throw<FormatException>(() => parser.Parse("X"));
+        Should.Throw<FormatException>(() => converter.Parse("X"));
     }
 
     private enum NormalEnum : byte

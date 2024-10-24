@@ -5,11 +5,11 @@ namespace Singulink.Enums;
 internal static class EnumRangeInfo<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T>
     where T : unmanaged, Enum
 {
-    public static bool IsContinuous { get; }
+    internal static bool IsContinuous;
 
-    public static T DefinedMin { get; }
+    internal static T DefinedMin;
 
-    public static T DefinedMax { get; }
+    internal static T DefinedMax;
 
     static EnumRangeInfo()
     {

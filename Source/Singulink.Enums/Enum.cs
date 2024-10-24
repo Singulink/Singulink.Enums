@@ -11,9 +11,10 @@ namespace Singulink.Enums;
 public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicFields)] T>
     where T : unmanaged, Enum
 {
-    private static readonly bool _isFlagsEnum = typeof(T).GetCustomAttribute<FlagsAttribute>() != null;
+    private static readonly bool _isFlagsEnum = typeof(T).GetCustomAttribute<FlagsAttribute>() is not null;
     private static readonly (ImmutableArray<T> Values, ImmutableArray<string> Names) _info = InitInfo();
-    private static readonly int _defaultIndex = BinarySearchValues(default);
+    private static readonly int _valuesLength = _info.Values.Length;
+    private static readonly int _defaultIndex = Values.IndexOf(default);
 
     /// <summary>
     /// Gets a value indicating whether this enumeration is a flags enumeration (i.e. has <see cref="FlagsAttribute"/> applied to it).
@@ -49,7 +50,7 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
     /// </summary>
     /// <param name="name">The name of the enumeration value.</param>
     /// <param name="ignoreCase"><see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive parsing.</param>
-    /// <exception cref=" MissingMemberException">An enumeration with the specified name was not found.</exception>
+    /// <exception cref="MissingMemberException">An enumeration with the specified name was not found.</exception>
     public static T GetValue(string name, bool ignoreCase = false)
     {
         return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.GetValue(name) : EnumConverter<T>.Default.GetValue(name);
@@ -98,19 +99,43 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
         return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.TryParse(s, out value) : EnumConverter<T>.Default.TryParse(s, out value);
     }
 
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static unsafe int BinarySearchValues(T value)
+    internal static bool ContainsValue(T value)
+    {
+        if (_valuesLength <= 20)
+            return _info.Values.Contains(value);
+
+        return BinarySearchValues(value) >= 0;
+    }
+
+    internal static int GetFirstValueIndex(T value)
+    {
+        if (_valuesLength <= 20)
+            return _info.Values.IndexOf(value);
+
+        return BinarySearchValues(value);
+    }
+
+    internal static void EnsureIsFlagsEnum()
+    {
+        if (!IsFlagsEnum)
+        {
+            static void Throw() => throw new InvalidOperationException($"Type '{typeof(T)}' is not a flags enumeration.");
+            Throw();
+        }
+    }
+
+    private static unsafe int BinarySearchValues(T value)
     {
         if (!_isFlagsEnum)
             return Values.BinarySearch(value);
 
-        if (sizeof(T) == 1)
+        if (sizeof(T) is 1)
             return ValuesAs<byte>().BinarySearch(UnsafeMethods.BitCast<T, byte>(value));
-        else if (sizeof(T) == 2)
+        else if (sizeof(T) is 2)
             return ValuesAs<ushort>().BinarySearch(UnsafeMethods.BitCast<T, ushort>(value));
-        else if (sizeof(T) == 4)
+        else if (sizeof(T) is 4)
             return ValuesAs<uint>().BinarySearch(UnsafeMethods.BitCast<T, uint>(value));
-        else if (sizeof(T) == 8)
+        else if (sizeof(T) is 8)
             return ValuesAs<ulong>().BinarySearch(UnsafeMethods.BitCast<T, ulong>(value));
 
         throw new NotSupportedException();
@@ -139,13 +164,13 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
 
         public int CompareTo(UnsignedComparable other)
         {
-            if (sizeof(T) == 1)
+            if (sizeof(T) is 1)
                 return UnsafeMethods.BitCast<T, byte>(_value).CompareTo(UnsafeMethods.BitCast<T, byte>(other._value));
-            else if (sizeof(T) == 2)
+            else if (sizeof(T) is 2)
                 return UnsafeMethods.BitCast<T, ushort>(_value).CompareTo(UnsafeMethods.BitCast<T, ushort>(other._value));
-            else if (sizeof(T) == 4)
+            else if (sizeof(T) is 4)
                 return UnsafeMethods.BitCast<T, uint>(_value).CompareTo(UnsafeMethods.BitCast<T, uint>(other._value));
-            else if (sizeof(T) == 8)
+            else if (sizeof(T) is 8)
                 return UnsafeMethods.BitCast<T, ulong>(_value).CompareTo(UnsafeMethods.BitCast<T, long>(other._value));
 
             throw new NotSupportedException();
