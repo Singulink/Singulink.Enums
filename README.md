@@ -53,7 +53,7 @@ ConsoleKey backspace = Enum<ConsoleKey>.Parse("Backspace");
 var value = AttributeTargets.Assembly;
 value = value.SetFlags(AttributeTargets.Class, AttributeTargets.Method); // set additional flags
 bool hasClassAndMethod = value.HasAllFlags(AttributeTargets.Class, AttributeTargets.Method); // true
-bool hasAssemblyOrCtor = value.HasAnyFlag(AttributeTargets.Assembly, AttributeTargets.Constructor); // true
+bool hasClassOrStruct = value.HasAnyFlag(AttributeTargets.Class, AttributeTargets.Struct); // true
 IReadOnlyList<AttributeTargets> splitValues = value.SplitFlags(); // 3 separate flags split out
 
 // Create a case-insensitive converter with a non-default separator
@@ -64,7 +64,7 @@ var converter = new EnumConverter<AttributeTargets>(opt => {
 
 // Convert enum value to/from string using the customized converter
 string enumString = converter.AsString(value) // "Assembly | Class | Method"
-value = converter.Parse(enumString);
+value = converter.Parse(enumString.ToLowerInvariant()); // Assembly, Class and Method flags set
 
 // Create an enum converter that uses the [Display] attribute to get the names
 var displayNameConverter = new EnumConverter<YourEnum>(opt => opt.WithDisplayNameGetter());
