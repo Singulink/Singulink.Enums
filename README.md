@@ -76,55 +76,54 @@ The following is a comparison between Singulink Enums, Enums.Net (v5.0) and oper
 
 ```
 | Method                            | Mean        | Error     | StdDev    |
-|-----------------------------------|-------------|-----------|-----------|
-| AreFlagsDefined_Singulink         |   0.1889 ns | 0.0025 ns | 0.0021 ns |
-| AreFlagsDefined_EnumsNet          |   0.1739 ns | 0.0018 ns | 0.0017 ns |
+|---------------------------------- |------------:|----------:|----------:|
+| AreFlagsDefined_Singulink         |   0.0195 ns | 0.0001 ns | 0.0001 ns |
+| AreFlagsDefined_EnumsNet          |   0.0225 ns | 0.0002 ns | 0.0002 ns |
 |                                   |             |           |           |
-| ClearFlags_Singulink              |   0.1365 ns | 0.0017 ns | 0.0016 ns |
-| ClearFlags_EnumsNet               |   0.7752 ns | 0.0026 ns | 0.0024 ns |
-| ClearFlags_Operator               |   0.1453 ns | 0.0024 ns | 0.0022 ns |
+| ClearFlags_Singulink              |   0.0118 ns | 0.0001 ns | 0.0001 ns |
+| ClearFlags_EnumsNet               |   0.2314 ns | 0.0005 ns | 0.0004 ns |
+| ClearFlags_Operator               |   0.0117 ns | 0.0002 ns | 0.0001 ns |
 |                                   |             |           |           |
-| HasAllFlags_Singulink             |   0.1586 ns | 0.0009 ns | 0.0008 ns |
-| HasAllFlags_EnumsNet              |   0.9162 ns | 0.0035 ns | 0.0033 ns |
-| HasAllFlags_System                |   0.1441 ns | 0.0016 ns | 0.0013 ns |
+| HasAllFlags_Singulink             |   0.0196 ns | 0.0003 ns | 0.0003 ns |
+| HasAllFlags_EnumsNet              |   0.3364 ns | 0.0005 ns | 0.0005 ns |
+| HasAllFlags_System                |   0.0120 ns | 0.0002 ns | 0.0002 ns |
 |                                   |             |           |           |
-| HasAnyFlags_Singulink             |   0.1588 ns | 0.0015 ns | 0.0014 ns |
-| HasAnyFlags_EnumsNet              |   0.7892 ns | 0.0037 ns | 0.0035 ns |
-| HasAnyFlags_Operator              |   0.1358 ns | 0.0007 ns | 0.0006 ns |
+| HasAnyFlags_Singulink             |   0.0191 ns | 0.0002 ns | 0.0001 ns |
+| HasAnyFlags_EnumsNet              |   0.2738 ns | 0.0004 ns | 0.0003 ns |
+| HasAnyFlags_Operator              |   0.0123 ns | 0.0002 ns | 0.0002 ns |
 |                                   |             |           |           |
-| IsDefined_Singulink               |    1.242 ns | 0.0147 ns | 0.0123 ns |
-| IsDefined_EnumsNet                |    4.298 ns | 0.0237 ns | 0.0198 ns |
-| IsDefined_System                  |    6.919 ns | 0.0673 ns | 0.0630 ns |
+| IsDefined_Singulink               |   0.3984 ns | 0.0008 ns | 0.0008 ns |
+| IsDefined_EnumsNet                |   1.3387 ns | 0.0026 ns | 0.0024 ns |
+| IsDefined_System                  |   2.0957 ns | 0.0064 ns | 0.0060 ns |
 |                                   |             |           |           |
-| ParseMultiple_Singulink           |  97.5124 ns | 0.7262 ns | 0.6793 ns |
-| ParseMultiple_EnumsNet            | 132.8245 ns | 0.3991 ns | 0.3733 ns |
-| ParseMultiple_System              | 174.0145 ns | 0.7984 ns | 0.7078 ns |
+| ParseMultiple_Singulink           |  33.5060 ns | 0.1024 ns | 0.0958 ns |
+| ParseMultiple_EnumsNet            |  51.4606 ns | 0.0518 ns | 0.0484 ns |
+| ParseMultiple_System              |  51.4423 ns | 0.1366 ns | 0.1278 ns |
 |                                   |             |           |           |
-| ParseMultipleIgnoreCase_Singulink |  97.0535 ns | 0.3031 ns | 0.2687 ns |
-| ParseMultipleIgnoreCase_EnumsNet  | 153.8227 ns | 0.8173 ns | 0.7645 ns |
-| ParseMultipleIgnoreCase_System    | 150.5741 ns | 0.4337 ns | 0.3845 ns |
+| ParseMultipleIgnoreCase_Singulink |  33.6575 ns | 0.0168 ns | 0.0157 ns |
+| ParseMultipleIgnoreCase_EnumsNet  |  56.0421 ns | 0.1147 ns | 0.1073 ns |
+| ParseMultipleIgnoreCase_System    |  50.4676 ns | 0.1079 ns | 0.1009 ns |
 |                                   |             |           |           |
-| ParseSingle_Singulink             |  18.8381 ns | 0.2114 ns | 0.1874 ns |
-| ParseSingle_EnumsNet              |  42.9609 ns | 0.2629 ns | 0.2053 ns |
-| ParseSingle_System                | 132.8030 ns | 0.9795 ns | 0.9162 ns |
+| ParseSingle_Singulink             |   7.5045 ns | 0.0265 ns | 0.0248 ns |
+| ParseSingle_EnumsNet              |  15.5357 ns | 0.0273 ns | 0.0255 ns |
+| ParseSingle_System                |  37.5409 ns | 0.1051 ns | 0.0932 ns |
 |                                   |             |           |           |
-| ParseSingleIgnoreCase_Singulink   |  20.0159 ns | 0.1196 ns | 0.1060 ns |
-| ParseSingleIgnoreCase_EnumsNet    |  48.8390 ns | 0.4490 ns | 0.3506 ns |
-| ParseSingleIgnoreCase_System      | 127.2730 ns | 0.7425 ns | 0.6200 ns |
+| ParseSingleIgnoreCase_Singulink   |   7.4814 ns | 0.0347 ns | 0.0325 ns |
+| ParseSingleIgnoreCase_EnumsNet    |  16.7586 ns | 0.0220 ns | 0.0206 ns |
+| ParseSingleIgnoreCase_System      |  39.3521 ns | 0.0308 ns | 0.0273 ns |
 |                                   |             |           |           |
-| SetFlags_Singulink                |   0.1361 ns | 0.0015 ns | 0.0013 ns |
-| SetFlags_EnumsNet                 |   0.9429 ns | 0.0135 ns | 0.0120 ns |
-| SetFlags_Operator                 |   0.1351 ns | 0.0016 ns | 0.0013 ns |
+| SetFlags_Singulink                |   0.0124 ns | 0.0003 ns | 0.0002 ns |
+| SetFlags_EnumsNet                 |   0.2272 ns | 0.0001 ns | 0.0001 ns |
+| SetFlags_Operator                 |   0.0121 ns | 0.0002 ns | 0.0002 ns |
 |                                   |             |           |           |
-| SplitFlags_Singulink              |  72.9657 ns | 0.9375 ns | 0.8769 ns |
-| SplitFlags_EnumsNet               | 240.1368 ns | 4.3469 ns | 3.8534 ns |
+| SplitFlags_Singulink              |  23.2878 ns | 0.0286 ns | 0.0254 ns |
+| SplitFlags_EnumsNet               |  84.8990 ns | 0.1504 ns | 0.1407 ns |
 |                                   |             |           |           |
-| AsStringMultiple_Singulink        | 225.2603 ns | 3.2194 ns | 2.8540 ns |
-| AsStringMultiple_EnumsNet         | 466.7276 ns | 1.9668 ns | 1.6423 ns |
-| AsStringMultiple_System           | 137.1171 ns | 1.8917 ns | 1.5796 ns |
+| AsStringMultiple_Singulink        |  77.5238 ns | 0.1581 ns | 0.1402 ns |
+| AsStringMultiple_EnumsNet         | 147.6367 ns | 0.4769 ns | 0.4461 ns |
+| AsStringMultiple_System           |  47.0363 ns | 0.6862 ns | 0.6083 ns |
 |                                   |             |           |           |
-| AsStringSingle_Singulink          |  14.6719 ns | 0.1029 ns | 0.0859 ns |
-| AsStringSingle_EnumsNet           |  10.1860 ns | 0.0632 ns | 0.0528 ns |
-| AsStringSingle_System             |  18.6756 ns | 0.0746 ns | 0.0623 ns |
-|-----------------------------------|-------------|-----------|-----------|
+| AsStringSingle_Singulink          |   5.1679 ns | 0.0093 ns | 0.0082 ns |
+| AsStringSingle_EnumsNet           |   4.0529 ns | 0.0087 ns | 0.0082 ns |
+| AsStringSingle_System             |   5.6126 ns | 0.0113 ns | 0.0105 ns |
 ```
