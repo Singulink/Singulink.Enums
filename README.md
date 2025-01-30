@@ -72,7 +72,7 @@ var displayNameConverter = new EnumConverter<YourEnum>(opt => opt.WithDisplayNam
 
 ## Benchmarks (.NET 8.0)
 
-The following is a comparison between Singulink Enums, Enums.Net (v5.0) and operators / system methods (where applicable). Some methods may have subtle behavioral differences.
+The following is a comparison between Singulink Enums, Enums.Net (v5.0) and operators / system methods (where applicable). Some methods may have subtle behavioral differences (for the better, in our opinion):
 
 ```
 | Method                            | Mean        | Error     | StdDev    |
