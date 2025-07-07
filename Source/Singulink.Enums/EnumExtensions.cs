@@ -10,6 +10,26 @@ namespace Singulink.Enums;
 public static partial class EnumExtensions
 {
     /// <summary>
+    /// Gets a string representation of the specified enumeration value.
+    /// </summary>
+    /// <param name="value">The enumeration value.</param>
+    public static string AsString<T>(this T value) where T : unmanaged, Enum
+    {
+        return EnumConverter<T>.Default.AsString(value);
+    }
+
+    /// <summary>
+    /// Gets a string representation of the specified enumeration value using the specified options to customize how flags are split.
+    /// </summary>
+    /// <param name="value">The enumeration value.</param>
+    /// <param name="flagsOptions">Options to customize the behavior of the conversion if the value is a flags enumeration. Ignored if the value is not a flags
+    /// enumeration.</param>
+    public static string AsString<T>(this T value, SplitFlagsOptions flagsOptions) where T : unmanaged, Enum
+    {
+        return EnumConverter<T>.Default.AsString(value, flagsOptions);
+    }
+
+    /// <summary>
     /// Determines whether the value's flags are all defined and they are a valid combination of flags.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -44,23 +64,6 @@ public static partial class EnumExtensions
     }
 
     /// <summary>
-    /// Uses the custom <see cref="IEnumValidatorAttribute{T}"/> if available to check if the value is valid, otherwise checks whether the value is defined
-    /// for regular enumerations, or checks whether the value's flags are all defined for flags enumerations.
-    /// </summary>
-    /// <remarks>
-    /// <para>This method is equivalent to calling <see cref="IsDefined{T}(T)"/> on regular enumerations or <see cref="AreFlagsDefined{T}(T)"/> on flags
-    /// enumerations that don't have custom validator attributes.</para>
-    /// </remarks>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static bool IsValid<[DynamicallyAccessedMembers(PublicFields)] T>(this T value) where T : unmanaged, Enum
-    {
-        if (EnumValidation<T>.ValidatorAttribute is not null and var attribute)
-            return attribute.IsValid(value);
-
-        return Enum<T>.IsFlagsEnum ? value.AreFlagsDefined() : value.IsDefined();
-    }
-
-    /// <summary>
     /// Determines whether the value is defined.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -86,12 +89,60 @@ public static partial class EnumExtensions
             return false;
         }
 
-        if (EnumRangeInfo<T>.IsContinuous) {
+        if (EnumRangeInfo<T>.IsContinuous)
+        {
             return Comparer<T>.Default.Compare(value, EnumRangeInfo<T>.DefinedMin) >= 0 &&
                    Comparer<T>.Default.Compare(value, EnumRangeInfo<T>.DefinedMax) <= 0;
         }
 
         return Enum<T>.GetFirstValueIndex(value) >= 0;
+    }
+
+    /// <summary>
+    /// Throws an <see cref="ArgumentOutOfRangeException"/> if the value is not defined.
+    /// </summary>
+    /// <param name="value">The value to check.</param>
+    /// <param name="paramName">The name of the parameter for the exception.</param>
+    public static void ThrowIfNotDefined<[DynamicallyAccessedMembers(PublicFields)] TEnum>(this TEnum value, string paramName)
+        where TEnum : unmanaged, Enum
+    {
+        if (!value.IsDefined())
+            Throw(paramName);
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static void Throw(string paramName) => throw new ArgumentOutOfRangeException(paramName, $"Undefined {typeof(TEnum).Name} value.");
+    }
+
+    /// <summary>
+    /// Uses the custom <see cref="IEnumValidatorAttribute{T}"/> if available to check if the value is valid, otherwise checks whether the value is defined
+    /// for regular enumerations, or checks whether the value's flags are all defined for flags enumerations.
+    /// </summary>
+    /// <remarks>
+    /// <para>This method is equivalent to calling <see cref="IsDefined{T}(T)"/> on regular enumerations or <see cref="AreFlagsDefined{T}(T)"/> on flags
+    /// enumerations that don't have custom validator attributes.</para>
+    /// </remarks>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool IsValid<[DynamicallyAccessedMembers(PublicFields)] T>(this T value) where T : unmanaged, Enum
+    {
+        if (EnumValidation<T>.ValidatorAttribute is not null and var attribute)
+            return attribute.IsValid(value);
+
+        return Enum<T>.IsFlagsEnum ? value.AreFlagsDefined() : value.IsDefined();
+    }
+
+    /// <summary>
+    /// Throws an <see cref="ArgumentOutOfRangeException"/> if the value is not valid.
+    /// </summary>
+    /// <param name="value">The value to check.</param>
+    /// <param name="paramName">The name of the parameter for the exception.</param>
+    public static void ThrowIfNotValid<[DynamicallyAccessedMembers(PublicFields)] TEnum>(this TEnum value, string paramName)
+        where TEnum : unmanaged, Enum
+    {
+        if (!value.IsValid())
+            Throw(paramName);
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static void Throw(string paramName) => throw new ArgumentOutOfRangeException(paramName, $"Invalid {typeof(TEnum).Name} value.");
     }
 
     /// <summary>
@@ -109,26 +160,6 @@ public static partial class EnumExtensions
         }
 
         return name;
-    }
-
-    /// <summary>
-    /// Gets a string representation of the specified enumeration value.
-    /// </summary>
-    /// <param name="value">The enumeration value.</param>
-    public static string AsString<T>(this T value) where T : unmanaged, Enum
-    {
-        return EnumConverter<T>.Default.AsString(value);
-    }
-
-    /// <summary>
-    /// Gets a string representation of the specified enumeration value using the specified options to customize how flags are split.
-    /// </summary>
-    /// <param name="value">The enumeration value.</param>
-    /// <param name="flagsOptions">Options to customize the behavior of the conversion if the value is a flags enumeration. Ignored if the value is not a flags
-    /// enumeration.</param>
-    public static string AsString<T>(this T value, SplitFlagsOptions flagsOptions) where T : unmanaged, Enum
-    {
-        return EnumConverter<T>.Default.AsString(value, flagsOptions);
     }
 
     /// <summary>
