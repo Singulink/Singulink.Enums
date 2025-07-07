@@ -68,6 +68,18 @@ value = converter.Parse(enumString.ToLowerInvariant()); // Assembly, Class and M
 
 // Create an enum converter that uses the [Display] attribute to get the names
 var displayNameConverter = new EnumConverter<YourEnum>(opt => opt.WithDisplayNameGetter());
+
+public void Method(AttributeTargets targets)
+{
+    // Throw ArgumentOutOfRangeException if targets is not a valid flag combo
+    targets.ThrowIfNotValid(nameof(targets));
+}
+
+public void Method(ConsoleKey key)
+{
+    // Throw ArgumentOutOfRangeException if key is not defined
+    key.ThrowIfNotDefined(nameof(key));
+}
 ```
 
 ## Benchmarks (.NET 8.0)

@@ -1,4 +1,6 @@
+- name: Home
+  href: index.md
 - name: API Documentation
-  href: api/
+  href: api/index.html
 - name: GitHub
   href: https://github.com/Singulink/Singulink.Enums/

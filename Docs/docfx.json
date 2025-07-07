@@ -2,7 +2,7 @@
   "metadata": [
     {
       "properties": {
-          "TargetFramework": "net8.0"
+        "TargetFramework": "net8.0"
       },
       "src": [
         {
@@ -13,6 +13,7 @@
         }
       ],
       "dest": "api",
+      "filter": "filterConfig.yml",
       "memberLayout": "separatePages",
       "includeExplicitInterfaceImplementations": true,
       "disableGitFeatures": true,
