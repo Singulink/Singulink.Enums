@@ -121,7 +121,15 @@ ul {
 }
 
 ol,ul {
-    padding-inline-start: 3em
+    padding-inline-start: 2.5em
+}
+
+ul span.term {
+    font-weight: bold;
+}
+
+ul span.term:after {
+    content: ' - ';
 }
 
 ul.level1 {
@@ -934,7 +942,7 @@ table td p {
     margin-block-start: 30px
 }
 
-#contribution {
+.contribution {
     float: right;
     margin-top: 1.1em;
     position: relative;
