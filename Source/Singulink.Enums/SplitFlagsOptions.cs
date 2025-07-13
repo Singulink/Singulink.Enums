@@ -9,13 +9,15 @@ namespace Singulink.Enums;
 public enum SplitFlagsOptions
 {
     /// <summary>
-    /// Use the default options when splitting flags.
+    /// Use the default options (no option flags set) when splitting flags.
     /// </summary>
     None = 0,
 
     /// <summary>
-    /// Include all matching flags in the result, even if they are redundant. If this option is not specified, only the minimal set of flags are included.
-    /// Zero-value flags are never included in a <see cref="EnumExtensions.SplitFlags{T}(T, SplitFlagsOptions)"/> result regardless of this option.
+    /// Include all matching flags in the result, even if they are redundant. If this option is not specified, only the minimal set of flags that can be
+    /// combined to form the original value are included. Zero-value flags are never included in a <see cref="EnumExtensions.SplitFlags{T}(T,
+    /// SplitFlagsOptions)"/> result regardless of this option. When that converting flags to strings, a non-empty string is always returned, so zero values
+    /// will return the name of the zero value enumeration member or `"0"` if there is no such member).
     /// </summary>
     AllMatchingFlags = 1,
 

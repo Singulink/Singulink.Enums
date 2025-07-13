@@ -88,7 +88,7 @@ The following is a comparison between Singulink Enums, Enums.Net (v5.0) and oper
 
 ```
 | Method                            | Mean        | Error     | StdDev    |
-|---------------------------------- |------------:|----------:|----------:|
+|---------------------------------- |-------------|-----------|-----------|
 | AreFlagsDefined_Singulink         |   0.0195 ns | 0.0001 ns | 0.0001 ns |
 | AreFlagsDefined_EnumsNet          |   0.0225 ns | 0.0002 ns | 0.0002 ns |
 |                                   |             |           |           |
@@ -128,14 +128,17 @@ The following is a comparison between Singulink Enums, Enums.Net (v5.0) and oper
 | SetFlags_EnumsNet                 |   0.2272 ns | 0.0001 ns | 0.0001 ns |
 | SetFlags_Operator                 |   0.0121 ns | 0.0002 ns | 0.0002 ns |
 |                                   |             |           |           |
-| SplitFlags_Singulink              |  23.2878 ns | 0.0286 ns | 0.0254 ns |
+| SplitFlags_Singulink*             |  23.2878 ns | 0.0286 ns | 0.0254 ns |
 | SplitFlags_EnumsNet               |  84.8990 ns | 0.1504 ns | 0.1407 ns |
 |                                   |             |           |           |
-| AsStringMultiple_Singulink        |  77.5238 ns | 0.1581 ns | 0.1402 ns |
+| AsStringMultiple_Singulink*       |  77.5238 ns | 0.1581 ns | 0.1402 ns |
 | AsStringMultiple_EnumsNet         | 147.6367 ns | 0.4769 ns | 0.4461 ns |
 | AsStringMultiple_System           |  47.0363 ns | 0.6862 ns | 0.6083 ns |
 |                                   |             |           |           |
 | AsStringSingle_Singulink          |   5.1679 ns | 0.0093 ns | 0.0082 ns |
 | AsStringSingle_EnumsNet           |   4.0529 ns | 0.0087 ns | 0.0082 ns |
 | AsStringSingle_System             |   5.6126 ns | 0.0113 ns | 0.0105 ns |
+|---------------------------------- |-------------|-----------|-----------|
+
+* Split flag values and strings are returned in descending order based on the highest bits set first, with any remainder added to the end. You also have the option to return all matching flags or just the minimal set of flags that can be combined to form the original value. This differs from Enums.Net and system methods as this is usually what developers want.
 ```
