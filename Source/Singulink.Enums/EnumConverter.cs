@@ -3,6 +3,7 @@ using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
 namespace Singulink.Enums;
 
@@ -100,7 +101,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
 
         _nameToValueLookup = nameToValueLookup.ToFrozenDictionary(nameComparer);
         _valueToNameLookup = valueToNameLookup.ToFrozenDictionary();
-        _names = Unsafe.As<string[], ImmutableArray<string>>(ref names);
+        _names = ImmutableCollectionsMarshal.AsImmutableArray(names);
     }
 
     /// <inheritdoc cref="EnumExtensions.GetName{T}(T)"/>
