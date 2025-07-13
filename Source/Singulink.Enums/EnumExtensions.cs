@@ -64,6 +64,21 @@ public static partial class EnumExtensions
     }
 
     /// <summary>
+    /// Throws an <see cref="ArgumentOutOfRangeException"/> if the value's flags are not all defined or they are not a valid combination of flags.
+    /// </summary>
+    /// <param name="value">The value to check.</param>
+    /// <param name="paramName">The name of the parameter for the exception.</param>
+    public static void ThrowIfFlagsAreNotDefined<[DynamicallyAccessedMembers(PublicFields)] TEnum>(this TEnum value, string paramName)
+        where TEnum : unmanaged, Enum
+    {
+        if (!value.AreFlagsDefined())
+            Throw(paramName);
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static void Throw(string paramName) => throw new ArgumentOutOfRangeException(paramName, $"Undefined {typeof(TEnum).Name} value.");
+    }
+
+    /// <summary>
     /// Determines whether the value is defined.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
