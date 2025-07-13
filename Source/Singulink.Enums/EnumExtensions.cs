@@ -30,7 +30,8 @@ public static partial class EnumExtensions
     }
 
     /// <summary>
-    /// Determines whether the value's flags are all defined and they are a valid combination of flags.
+    /// Determines whether the value's flags are all defined and they are a valid combination (i.e. the value can actually be represented by combining defined
+    /// flags).
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static bool AreFlagsDefined<[DynamicallyAccessedMembers(PublicFields)] T>(this T value) where T : unmanaged, Enum
@@ -64,7 +65,8 @@ public static partial class EnumExtensions
     }
 
     /// <summary>
-    /// Throws an <see cref="ArgumentOutOfRangeException"/> if the value's flags are not all defined or they are not a valid combination of flags.
+    /// Throws an <see cref="ArgumentOutOfRangeException"/> if the value's flags are not all defined or they are not a valid combination (i.e. the value cannot
+    /// actually be represented by combining defined flags).
     /// </summary>
     /// <param name="value">The value to check.</param>
     /// <param name="paramName">The name of the parameter for the exception.</param>
@@ -75,7 +77,7 @@ public static partial class EnumExtensions
             Throw(paramName);
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        static void Throw(string paramName) => throw new ArgumentOutOfRangeException(paramName, $"Undefined {typeof(TEnum).Name} value.");
+        static void Throw(string paramName) => throw new ArgumentOutOfRangeException(paramName, $"Undefined or invalid {typeof(TEnum).Name} flags value.");
     }
 
     /// <summary>

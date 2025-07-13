@@ -5,7 +5,7 @@
 
     <PackageProjectUrl>https://github.com/Singulink/Singulink.Enums</PackageProjectUrl>
     <PackageTags>Enum, Enumeration, Generic, Enums.NET</PackageTags>
-    <Version>2.2</Version>
+    <Version>2.3</Version>
     <Description>Fast, efficient, low-memory footprint generic operations and extension methods for enumeration types.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
