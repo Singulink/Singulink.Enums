@@ -12,13 +12,14 @@ public static partial class EnumExtensions
 {
     /// <summary>
     /// Splits the value into the defined flags that make up the value, plus any remainder (if <see cref="SplitFlagsOptions.ExcludeRemainder"/> is not set).
+    /// Defined flags are returned in descending order based on the highest bits set first.
     /// </summary>
     /// <param name="value">The value to split.</param>
     /// <param name="options">The options to use for the splitting operation.</param>
     /// <remarks>
     /// If <see cref="SplitFlagsOptions.ExcludeRemainder"/> is not set and there is a remainder that cannot be represented by any defined flags then its value
-    /// is appended to the end of the resulting list. You can check if the last element is a remainder by calling <see cref="EnumExtensions.IsDefined{T}(T)"/>
-    /// on it. You can also exclude the remainder or throw an exception if there is a remainder via the <paramref name="options"/> parameter.
+    /// is appended to the end of the resulting list. You can check if the last element is a remainder by calling <see cref="IsDefined{T}(T)"/> on it. You can
+    /// also exclude the remainder or throw an exception if there is a remainder via the <paramref name="options"/> parameter.
     /// </remarks>
     [SkipLocalsInit]
     public static IReadOnlyList<T> SplitFlags<[DynamicallyAccessedMembers(PublicFields)] T>(this T value, SplitFlagsOptions options = SplitFlagsOptions.None)

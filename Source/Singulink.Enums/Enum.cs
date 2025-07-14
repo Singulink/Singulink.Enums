@@ -25,16 +25,17 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
     /// Gets all the defined names for the enumeration, ordered by their value.
     /// </summary>
     /// <remarks>
-    /// <see cref="Values"/> for more information on how values are ordered.
+    /// The index of each value in <see cref="Values"/> matches the index of its name in <see cref="Names"/>. For flags enumerations, the values are
+    /// ordered by the highest bits set in ascending order, otherwise they are ordered by their underlying value in ascending order.
     /// </remarks>
     public static ImmutableArray<string> Names => _info.Names;
 
     /// <summary>
-    /// Gets all the defined values for the enumeration, ordered by the value.
+    /// Gets all the defined values for the enumeration.
     /// </summary>
     /// <remarks>
-    /// <para>The index of each value matches the index of its name in the <see cref="Names"/> collection. If this is a flags enumeration then the
-    /// values are ordered by the underlying type's unsigned representation so that values are ordered by highest bits set in ascending order.</para>
+    /// The index of each value in <see cref="Values"/> matches the index of its name in <see cref="Names"/>. For flags enumeration, the values are ordered by
+    /// the highest bits set in ascending order, otherwise they are ordered by their underlying value in ascending order.
     /// </remarks>
     public static ImmutableArray<T> Values => _info.Values;
 

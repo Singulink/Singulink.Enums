@@ -84,7 +84,7 @@ public void Method(ConsoleKey key)
 
 ## Benchmarks (.NET 8.0)
 
-The following is a comparison between Singulink Enums, Enums.Net (v5.0) and operators / system methods (where applicable). Some methods may have subtle behavioral differences (for the better, in our opinion):
+The following is a comparison between Singulink Enums, Enums.Net (v5.0) and operators / system methods (where applicable):
 
 ```
 | Method                            | Mean        | Error     | StdDev    |
@@ -139,6 +139,6 @@ The following is a comparison between Singulink Enums, Enums.Net (v5.0) and oper
 | AsStringSingle_EnumsNet           |   4.0529 ns | 0.0087 ns | 0.0082 ns |
 | AsStringSingle_System             |   5.6126 ns | 0.0113 ns | 0.0105 ns |
 |---------------------------------- |-------------|-----------|-----------|
-
-* Split flag values and strings are returned in descending order based on the highest bits set first, with any remainder added to the end. You also have the option to return all matching flags or just the minimal set of flags that can be combined to form the original value. This differs from Enums.Net and system methods as this is usually what developers want.
 ```
+
+\* Split flags and flags converted to strings are returned in descending order based on the highest bits set first (with any remainder added to the end). This behavior differs from Enums.Net and system methods as this is usually what developers want. You also have the option to return all matching flags or just the minimal set of flags that can be combined to form the original value (see [`SplitFlagsOptions`](https://www.singulink.com/Docs/Singulink.Enums/api/Singulink.Enums.SplitFlagsOptions.html)).
