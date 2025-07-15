@@ -28,7 +28,7 @@ public enum SplitFlagsOptions
     ExcludeRemainder = 4,
 
     /// <summary>
-    /// Throw <see cref="ArgumentException"/> if there is a remainder that cannot be represented by any defined flags.
+    /// Throw <see cref="ArgumentOutOfRangeException"/> if there is a remainder that cannot be represented by any defined flags.
     /// </summary>
     ThrowOnRemainder = 8,
 }
@@ -51,7 +51,7 @@ internal static class SplitFlagsOptionsExtensions
     {
         if (options.HasAllFlags(SplitFlagsOptions.ThrowOnRemainder))
         {
-            static void Throw(string valueParamName) => throw new ArgumentException("The value contains a remainder with undefined flags.", nameof(valueParamName));
+            static void Throw(string valueParamName) => throw new ArgumentOutOfRangeException("The value contains a remainder with undefined flags.", nameof(valueParamName));
             Throw(valueParamName);
         }
     }
