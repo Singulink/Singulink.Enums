@@ -72,7 +72,7 @@ var displayNameConverter = new EnumConverter<YourEnum>(opt => opt.WithDisplayNam
 public void Method(AttributeTargets targets)
 {
     // Throw ArgumentOutOfRangeException if targets is not a valid flag combo
-    targets.ThrowIfNotValid(nameof(targets));
+    targets.ThrowIfFlagsAreNotDefined(nameof(targets));
 }
 
 public void Method(ConsoleKey key)
