@@ -14,10 +14,15 @@ public enum SplitFlagsOptions
     None = 0,
 
     /// <summary>
+    /// <para>
     /// Include all matching flags in the result, even if they are redundant. If this option is not specified, only the minimal set of flags that can be
-    /// combined to form the original value are included. Zero-value flags are never included in a <see cref="EnumExtensions.SplitFlags{T}(T,
-    /// SplitFlagsOptions)"/> result regardless of this option. When that converting flags to strings, a non-empty string is always returned, so zero values
-    /// will return the name of the zero value enumeration member or `"0"` if there is no such member).
+    /// combined to form the original value are included.</para>
+    /// <para>
+    /// Methods that return split flags (e.g. <see cref="EnumExtensions.SplitFlags{T}(T, SplitFlagsOptions)"/> never include zero-value flags in the result
+    /// regardless of this option.</para>
+    /// <para>
+    /// Methods that convert flags to strings (e.g. <see cref="EnumExtensions.AsString{T}(T, SplitFlagsOptions)"/>) never return an empty string, so converting
+    /// a default value with no flags set will return the name of the zero value enumeration member (or <c>"0"</c> if there is no such member).</para>
     /// </summary>
     AllMatchingFlags = 1,
 
