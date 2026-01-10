@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -31,6 +32,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
     private readonly FrozenDictionary<string, T> _nameToValueLookup;
     private readonly FrozenDictionary<T, string> _valueToNameLookup;
     private readonly ImmutableArray<string> _names; // names in the same order as Enum<T>.Values
+    private readonly SpanAction<char, IntPtr> _asStringHelper;
 
     private readonly string _toStringSeparator;
     private readonly char _parseSeparator;
@@ -102,6 +104,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         _nameToValueLookup = nameToValueLookup.ToFrozenDictionary(nameComparer);
         _valueToNameLookup = valueToNameLookup.ToFrozenDictionary();
         _names = ImmutableCollectionsMarshal.AsImmutableArray(names);
+        _asStringHelper = CreateAsStringHelper(_toStringSeparator);
     }
 
     /// <inheritdoc cref="EnumExtensions.GetName{T}(T)"/>
@@ -171,10 +174,9 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         bool doStackAlloc = Enum<T>.Values.Length <= MaxStackAllocLength || !allMatchingFlags;
         int[] rented = null;
         Span<int> foundItems = doStackAlloc ? stackalloc int[MaxStackAllocLength] : (rented = ArrayPool<int>.Shared.Rent(Enum<T>.Values.Length));
+        string result;
 
-        EnumExtensions.SplitFlagsDescending(value, allMatchingFlags, foundItems, out int foundItemsCount, out T remainder);
-
-        int resultLength;
+        EnumExtensions.SplitFlagsDescending(value, allMatchingFlags, foundItems, out int foundItemsCount, out T remainder, _names.AsSpan(), out int resultLength);
 
         bool skipRemainder = EqualityComparer<T>.Default.Equals(remainder, default) || flagsOptions.HasAllFlags(SplitFlagsOptions.ExcludeRemainder);
         string remainderString = null;
@@ -182,9 +184,12 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         if (skipRemainder)
         {
             if (foundItemsCount is 0)
-                return Enum<T>.DefaultIndex >= 0 ? _names[Enum<T>.DefaultIndex] : "0";
+            {
+                result = Enum<T>.DefaultIndex >= 0 ? _names[Enum<T>.DefaultIndex] : "0";
+                goto done;
+            }
 
-            resultLength = _toStringSeparator.Length * (foundItemsCount - 1);
+            resultLength += _toStringSeparator.Length * (foundItemsCount - 1);
         }
         else
         {
@@ -192,36 +197,175 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
             remainderString = UnderlyingOperations.ToString(remainder);
 
             if (foundItemsCount is 0)
-                return remainderString;
+            {
+                result = remainderString;
+                goto done;
+            }
 
-            resultLength = (_toStringSeparator.Length * foundItemsCount) + remainderString.Length;
+            resultLength += (_toStringSeparator.Length * foundItemsCount) + remainderString.Length;
         }
 
         foundItems = foundItems[..foundItemsCount];
 
-        foreach (int item in foundItems)
-            resultLength += _names[item].Length;
+        var asStringState = new AsStringState(foundItems, _names.AsSpan(), remainderString);
+        result = StringMethods.Create(resultLength, (IntPtr)(&asStringState), _asStringHelper);
 
-        return StringMethods.Create(resultLength, (foundItemsPtr: (nint)(&foundItems), remainderString), (chars, state) => {
-            var foundItems = *(ReadOnlySpan<int>*)state.foundItemsPtr;
-            string remainderString = state.remainderString;
+        done:
+        if (rented is not null) ArrayPool<int>.Shared.Return(rented);
+        return result;
+    }
 
-            for (int i = foundItems.Length - 1; i >= 0; i--)
+    private ref struct AsStringState(ReadOnlySpan<int> foundItems, ReadOnlySpan<string> names, string? remainderString)
+    {
+        public ReadOnlySpan<int> FoundItems = foundItems;
+        public ReadOnlySpan<string> Names = names;
+        public string? RemainderString = remainderString;
+    }
+
+    // Helper that creates the callback for creating the string result in AsString.
+    // It optimizes for small separator lengths (and also the default value specifically) to ensure best performance for cases most affected.
+    private static unsafe SpanAction<char, IntPtr> CreateAsStringHelper(string toStringSeperator)
+    {
+        return toStringSeperator switch
+        {
+            [] => static (chars, state) =>
             {
-                int item = foundItems[i];
-                var name = _names[item].AsSpan();
-                name.CopyTo(chars);
-                chars = chars[name.Length..];
+                var stateValue = *(AsStringState*)state;
+                var foundItems = stateValue.FoundItems;
+                string remainderString = stateValue.RemainderString;
+                var names = stateValue.Names;
 
-                if (i < chars.Length || remainderString is not null)
+                for (int i = foundItems.Length - 1; i >= 0; i--)
                 {
-                    _toStringSeparator.AsSpan().CopyTo(chars);
-                    chars = chars[_toStringSeparator.Length..];
+                    int item = foundItems[i];
+                    string name = names[item];
+                    name.CopyTo(chars);
+                    chars = chars[name.Length..];
                 }
-            }
 
-            remainderString?.AsSpan().CopyTo(chars);
-        });
+                remainderString?.CopyTo(chars);
+            },
+            [var c0] => (chars, state) =>
+            {
+                var stateValue = *(AsStringState*)state;
+                var foundItems = stateValue.FoundItems;
+                string remainderString = stateValue.RemainderString;
+                var names = stateValue.Names;
+
+                for (int i = foundItems.Length - 1; i > 0; i--)
+                {
+                    int item = foundItems[i];
+                    string name = names[item];
+                    name.CopyTo(chars);
+                    var nextChars = chars[(name.Length + 1)..];
+                    chars[name.Length] = c0;
+                    chars = nextChars;
+                }
+
+                Debug.Assert(foundItems.Length > 0, "Expected at least one found item.");
+                string lastName = names[foundItems[0]];
+                lastName.CopyTo(chars);
+                if (remainderString is not null)
+                {
+                    chars = chars[lastName.Length..];
+                    var nextChars = chars[1..];
+                    chars[0] = c0;
+                    chars = nextChars;
+                    remainderString.CopyTo(chars);
+                }
+            },
+            ", " => (chars, state) =>
+            {
+                var stateValue = *(AsStringState*)state;
+                var foundItems = stateValue.FoundItems;
+                string remainderString = stateValue.RemainderString;
+                var names = stateValue.Names;
+
+                for (int i = foundItems.Length - 1; i > 0; i--)
+                {
+                    int item = foundItems[i];
+                    string name = names[item];
+                    name.CopyTo(chars);
+                    var nextChars = chars[(name.Length + 2)..];
+                    chars[name.Length] = ',';
+                    chars[name.Length + 1] = ' ';
+                    chars = nextChars;
+                }
+
+                Debug.Assert(foundItems.Length > 0, "Expected at least one found item.");
+                string lastName = names[foundItems[0]];
+                lastName.CopyTo(chars);
+                if (remainderString is not null)
+                {
+                    chars = chars[lastName.Length..];
+                    var nextChars = chars[2..];
+                    chars[0] = ',';
+                    chars[1] = ' ';
+                    chars = nextChars;
+                    remainderString.CopyTo(chars);
+                }
+            },
+            [var c0, var c1] => (chars, state) =>
+            {
+                var stateValue = *(AsStringState*)state;
+                var foundItems = stateValue.FoundItems;
+                string remainderString = stateValue.RemainderString;
+                var names = stateValue.Names;
+
+                for (int i = foundItems.Length - 1; i > 0; i--)
+                {
+                    int item = foundItems[i];
+                    string name = names[item];
+                    name.CopyTo(chars);
+                    var nextChars = chars[(name.Length + 2)..];
+                    chars[name.Length] = c0;
+                    chars[name.Length + 1] = c1;
+                    chars = nextChars;
+                }
+
+                Debug.Assert(foundItems.Length > 0, "Expected at least one found item.");
+                string lastName = names[foundItems[0]];
+                lastName.CopyTo(chars);
+                if (remainderString is not null)
+                {
+                    chars = chars[lastName.Length..];
+                    var nextChars = chars[2..];
+                    chars[0] = c0;
+                    chars[1] = c1;
+                    chars = nextChars;
+                    remainderString.CopyTo(chars);
+                }
+            },
+            _ => (chars, state) =>
+            {
+                var stateValue = *(AsStringState*)state;
+                var foundItems = stateValue.FoundItems;
+                string remainderString = stateValue.RemainderString;
+                var names = stateValue.Names;
+                var toStringSeperatorSp = toStringSeperator.AsSpan();
+
+                for (int i = foundItems.Length - 1; i > 0; i--)
+                {
+                    int item = foundItems[i];
+                    string name = names[item];
+                    name.CopyTo(chars);
+                    chars = chars[name.Length..];
+                    toStringSeperatorSp.CopyTo(chars);
+                    chars = chars[toStringSeperatorSp.Length..];
+                }
+
+                Debug.Assert(foundItems.Length > 0, "Expected at least one found item.");
+                string lastName = names[foundItems[0]];
+                lastName.CopyTo(chars);
+                if (remainderString is not null)
+                {
+                    chars = chars[lastName.Length..];
+                    toStringSeperatorSp.CopyTo(chars);
+                    chars = chars[toStringSeperatorSp.Length..];
+                    remainderString?.CopyTo(chars);
+                }
+            },
+        };
     }
 
     /// <inheritdoc cref="Enum{T}.TryGetValue(string, out T)" />
