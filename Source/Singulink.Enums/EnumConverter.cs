@@ -228,23 +228,6 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
     {
         return toStringSeperator switch
         {
-            [] => static (chars, state) =>
-            {
-                var stateValue = *(AsStringState*)state;
-                var foundItems = stateValue.FoundItems;
-                string remainderString = stateValue.RemainderString;
-                var names = stateValue.Names;
-
-                for (int i = foundItems.Length - 1; i >= 0; i--)
-                {
-                    int item = foundItems[i];
-                    string name = names[item];
-                    name.CopyTo(chars);
-                    chars = chars[name.Length..];
-                }
-
-                remainderString?.CopyTo(chars);
-            },
             [var c0] => (chars, state) =>
             {
                 var stateValue = *(AsStringState*)state;
