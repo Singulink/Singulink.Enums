@@ -112,7 +112,7 @@ public static partial class EnumExtensions
                    Comparer<T>.Default.Compare(value, EnumRangeInfo<T>.DefinedMax) <= 0;
         }
 
-        return Enum<T>.GetFirstValueIndex(value) >= 0;
+        return Enum<T>.ContainsValue(value);
     }
 
     /// <summary>
