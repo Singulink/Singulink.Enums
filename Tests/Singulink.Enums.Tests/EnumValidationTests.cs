@@ -47,27 +47,27 @@ public class EnumValidationTests
     [TestMethod]
     public void Discontinuous()
     {
-        EnumRangeInfo<Discontinous>.IsContinuous.ShouldBeFalse();
-        EnumRangeInfo<Discontinous>.DefinedMin.ShouldBe(Discontinous.A);
-        EnumRangeInfo<Discontinous>.DefinedMax.ShouldBe(Discontinous.E);
+        EnumRangeInfo<DiscontinuousA>.IsContinuous.ShouldBeFalse();
+        EnumRangeInfo<DiscontinuousA>.DefinedMin.ShouldBe(DiscontinuousA.A);
+        EnumRangeInfo<DiscontinuousA>.DefinedMax.ShouldBe(DiscontinuousA.E);
 
-        foreach (Discontinous value in Enum.GetValues(typeof(Discontinous)))
+        foreach (DiscontinuousA value in Enum.GetValues(typeof(DiscontinuousA)))
         {
             value.IsDefined().ShouldBeTrue();
-            value.IsValid().ShouldBe(value == Discontinous.B);
+            value.IsValid().ShouldBe(value == DiscontinuousA.B);
         }
 
-        (Discontinous.A - 1).IsDefined().ShouldBeFalse();
-        (Discontinous.A - 1).IsValid().ShouldBeFalse();
+        (DiscontinuousA.A - 1).IsDefined().ShouldBeFalse();
+        (DiscontinuousA.A - 1).IsValid().ShouldBeFalse();
 
-        (Discontinous.E + 1).IsDefined().ShouldBeFalse();
-        (Discontinous.E + 1).IsValid().ShouldBeFalse();
+        (DiscontinuousA.E + 1).IsDefined().ShouldBeFalse();
+        (DiscontinuousA.E + 1).IsValid().ShouldBeFalse();
     }
 
     [TestMethod]
     public void CustomValidator()
     {
-        foreach (Discontinous value in Enum.GetValues(typeof(Discontinous)))
+        foreach (DiscontinuousA value in Enum.GetValues(typeof(DiscontinuousA)))
         {
             if ((long)value == 1)
                 value.IsValid().ShouldBeTrue();
@@ -97,7 +97,7 @@ public class EnumValidationTests
     }
 
     [Only1IsValidEnum]
-    private enum Discontinous : long
+    private enum DiscontinuousA : long
     {
         A = 0,
         B = 1,
@@ -106,8 +106,8 @@ public class EnumValidationTests
     }
 
     [AttributeUsage(AttributeTargets.Enum, AllowMultiple = false)]
-    private class Only1IsValidEnumAttribute : Attribute, IEnumValidatorAttribute<Discontinous>
+    private class Only1IsValidEnumAttribute : Attribute, IEnumValidatorAttribute<DiscontinuousA>
     {
-        public bool IsValid(Discontinous value) => (long)value == 1;
+        public bool IsValid(DiscontinuousA value) => (long)value == 1;
     }
 }

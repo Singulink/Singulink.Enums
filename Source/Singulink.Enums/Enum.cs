@@ -172,7 +172,7 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
             else if (sizeof(T) is 4)
                 return UnsafeMethods.BitCast<T, uint>(_value).CompareTo(UnsafeMethods.BitCast<T, uint>(other._value));
             else if (sizeof(T) is 8)
-                return UnsafeMethods.BitCast<T, ulong>(_value).CompareTo(UnsafeMethods.BitCast<T, long>(other._value));
+                return UnsafeMethods.BitCast<T, ulong>(_value).CompareTo(UnsafeMethods.BitCast<T, ulong>(other._value));
 
             throw new NotSupportedException();
         }
