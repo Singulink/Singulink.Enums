@@ -58,6 +58,72 @@ internal static unsafe class UnderlyingOperations
         }
     }
 
+#if NET9_0_OR_GREATER
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryParse<T>(ReadOnlySpan<char> s, out T result) where T : unmanaged, Enum
+    {
+        const NumberStyles style = NumberStyles.AllowLeadingSign;
+        var culture = CultureInfo.InvariantCulture;
+        var underlying = typeof(T).GetEnumUnderlyingType();
+
+        if (sizeof(T) is 1)
+        {
+            if (underlying == typeof(byte))
+                return byte.TryParse(s, style, culture, out byte r) & ToResult(r, out result);
+
+            if (underlying == typeof(sbyte))
+                return sbyte.TryParse(s, style, culture, out sbyte r) & ToResult(r, out result);
+        }
+        else if (sizeof(T) is 2)
+        {
+            if (underlying == typeof(short))
+                return short.TryParse(s, style, culture, out short r) & ToResult(r, out result);
+
+            if (underlying == typeof(ushort))
+                return ushort.TryParse(s, style, culture, out ushort r) & ToResult(r, out result);
+
+            if (underlying == typeof(char))
+            {
+                if (s is [var c])
+                {
+                    ToResult(c, out result);
+                    return true;
+                }
+                else
+                {
+                    result = default;
+                    return false;
+                }
+            }
+        }
+        else if (sizeof(T) is 4)
+        {
+            if (underlying == typeof(int))
+                return int.TryParse(s, style, culture, out int r) & ToResult(r, out result);
+
+            if (underlying == typeof(uint))
+                return uint.TryParse(s, style, culture, out uint r) & ToResult(r, out result);
+        }
+        else if (sizeof(T) is 8)
+        {
+            if (underlying == typeof(long))
+                return long.TryParse(s, style, culture, out long r) & ToResult(r, out result);
+
+            if (underlying == typeof(ulong))
+                return ulong.TryParse(s, style, culture, out ulong r) & ToResult(r, out result);
+        }
+
+        throw new NotSupportedException();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static bool ToResult<TValue>(TValue value, out T result) where TValue : struct
+        {
+            result = UnsafeMethods.BitCast<TValue, T>(value);
+            return true;
+        }
+    }
+#endif
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static string ToString<T>(T value) where T : unmanaged, Enum
     {

@@ -77,6 +77,7 @@ public class FlagsConvertTests
         converter.Parse("  All  ").ShouldBe(FlagsEnum.All);
         converter.Parse("  A B C   D  All  ").ShouldBe(FlagsEnum.All);
         converter.Parse("A D").ShouldBe(FlagsEnum.A | FlagsEnum.D);
+        converter.Parse("  \tA B\tC \t D \t\tAll\t ").ShouldBe(FlagsEnum.All);
     }
 
     [TestMethod]
@@ -104,10 +105,9 @@ public class FlagsConvertTests
 
     [TestMethod]
     [DataRow("")]
-    [DataRow("  ")]
-    [DataRow("  ,")]
-    [DataRow(",  ")]
-    [DataRow("   ")]
+    [DataRow("  ,,")]
+    [DataRow(",,  ")]
+    [DataRow(" ,, ")]
     public void InvalidSeparator(string separator)
     {
         Should.Throw<ArgumentException>(() => new EnumConverter<FlagsEnum>(opt => opt.Separator = separator));

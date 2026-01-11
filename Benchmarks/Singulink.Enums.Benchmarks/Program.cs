@@ -6,6 +6,7 @@ using BenchmarkDotNet.Running;
 #pragma warning disable SA1515
 
 [GroupBenchmarksBy(BenchmarkLogicalGroupRule.ByCategory)]
+[MemoryDiagnoser]
 public class Program
 {
     private readonly AttributeTargets[] _allValues = Enum.GetValues<AttributeTargets>();

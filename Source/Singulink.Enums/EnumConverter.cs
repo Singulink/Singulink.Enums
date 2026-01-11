@@ -33,10 +33,12 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
     private readonly FrozenDictionary<T, string> _valueToNameLookup;
     private readonly ImmutableArray<string> _names; // names in the same order as Enum<T>.Values
     private readonly SpanAction<char, IntPtr> _asStringHelper;
+#if NET9_0_OR_GREATER
+    private readonly FrozenDictionary<string, T>.AlternateLookup<ReadOnlySpan<char>> _nameSpanToValueLookup;
+#endif
 
     private readonly string _toStringSeparator;
     private readonly char _parseSeparator;
-    private readonly bool _isSeparatorWhitespace;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EnumConverter{T}"/> class.
@@ -54,7 +56,6 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         {
             _toStringSeparator = options.Separator;
             _parseSeparator = options._separatorChar;
-            _isSeparatorWhitespace = char.IsWhiteSpace(_parseSeparator);
         }
         else
         {
@@ -75,6 +76,9 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
                 throw new ArgumentException("Null or empty enumeration name.");
 
             if (Enum<T>.IsFlagsEnum && name.Contains(_parseSeparator))
+                throw new ArgumentException($"Enumeration name '{name}' contains the separator character.");
+
+            if (Enum<T>.IsFlagsEnum && _parseSeparator == ' ' && name.Any(char.IsWhiteSpace))
                 throw new ArgumentException($"Enumeration name '{name}' contains the separator character.");
 
             var value = (T)field.GetValue(null)!;
@@ -105,6 +109,10 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         _valueToNameLookup = valueToNameLookup.ToFrozenDictionary();
         _names = ImmutableCollectionsMarshal.AsImmutableArray(names);
         _asStringHelper = CreateAsStringHelper(_toStringSeparator);
+
+#if NET9_0_OR_GREATER
+        _nameSpanToValueLookup = _nameToValueLookup.GetAlternateLookup<ReadOnlySpan<char>>();
+#endif
     }
 
     /// <inheritdoc cref="EnumExtensions.GetName{T}(T)"/>
@@ -133,8 +141,30 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         return value;
     }
 
+    /// <inheritdoc cref="Enum{T}.GetValue(string, bool)"/>
+    public T GetValue(ReadOnlySpan<char> name)
+    {
+        if (!TryGetValue(name, out T value))
+        {
+            [DoesNotReturn]
+            static void Throw(ReadOnlySpan<char> name) => throw new MissingMemberException($"An enumeration with the name '{name}' was not found.");
+            Throw(name);
+        }
+
+        return value;
+    }
+
     /// <inheritdoc cref="Enum{T}.Parse(string, bool)"/>
     public T Parse(string s)
+    {
+        if (TryParse(s, out T value))
+            return value;
+
+        throw new FormatException("Input string was not in a correct format.");
+    }
+
+    /// <inheritdoc cref="Enum{T}.Parse(string, bool)"/>
+    public T Parse(ReadOnlySpan<char> s)
     {
         if (TryParse(s, out T value))
             return value;
@@ -354,70 +384,172 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
     /// <inheritdoc cref="Enum{T}.TryGetValue(string, out T)" />
     public bool TryGetValue(string name, out T value) => _nameToValueLookup.TryGetValue(name, out value);
 
+    /// <inheritdoc cref="Enum{T}.TryGetValue(string, out T)" />
+    public bool TryGetValue(ReadOnlySpan<char> name, out T value)
+    {
+#if NET9_0_OR_GREATER
+        return _nameSpanToValueLookup.TryGetValue(name, out value);
+#else
+        return _nameToValueLookup.TryGetValue(name.ToString(), out value);
+#endif
+    }
+
     /// <inheritdoc cref="EnumExtensions.TryGetName{T}(T, out string?)"/>
     public bool TryGetName(T value, [NotNullWhen(true)] out string? name) => _valueToNameLookup.TryGetValue(value, out name);
 
     /// <inheritdoc cref="Enum{T}.TryParse(string, out T)"/>
     public bool TryParse(string s, out T value)
     {
-        if (!Enum<T>.IsFlagsEnum)
-            return TryGetNamedOrNumericValue(s.Trim(), out value);
+        _ = s.Length;
+        return TryParseImpl(s, s.AsSpan(), out value);
+    }
 
-        value = default;
-        int start = 0;
+    /// <inheritdoc cref="Enum{T}.TryParse(string, out T)"/>
+    public bool TryParse(ReadOnlySpan<char> s, out T value)
+    {
+        return TryParseImpl(null, s, out value);
+    }
 
-        while (true)
+    private bool TryParseImpl(string? s, ReadOnlySpan<char> sp, out T value)
+    {
+        // Check if it can be done as a single name or numeric value:
+        // Note: the single name check is opportunistic only for flags enums; this allows us to catch likely cases fast.
+        sp = sp.Trim();
+        if (sp.Length == 0) goto fail;
+        if (!Enum<T>.IsFlagsEnum || (sp.Length <= 12 && !sp.Contains(_parseSeparator)))
         {
-            if (start == s.Length)
-                return false;
-
-            if (char.IsWhiteSpace(s[start]))
-                start++;
+#if !NET9_0_OR_GREATER
+            if (s is not null && sp.Length == s.Length)
+            {
+                if (TryGetNamedOrNumericValue(s, out value)) return true;
+            }
             else
-                break;
+#endif
+            {
+                if (TryGetNamedOrNumericValueSpan(sp, out value))
+                {
+                    return true;
+                }
+            }
+
+            if (!Enum<T>.IsFlagsEnum || _parseSeparator != ' ') goto fail;
         }
 
-        while (true)
+        // Check if it's whitespace separators, which needs special handling:
+        value = default;
+        int sepIdx;
+        if (_parseSeparator == ' ') goto handleWhitespaceSeparator;
+
+        // Loop while there are more separators:
+        T partValue;
+        while ((sepIdx = sp.IndexOf(_parseSeparator)) >= 0)
         {
-            int separator = s.IndexOf(_parseSeparator, start);
-            int exclusiveEnd = separator < 0 ? s.Length : separator;
+            var nextPart = sp[(sepIdx + 1)..];
+            var part = sp[..sepIdx].TrimEnd();
 
-            if (exclusiveEnd == start)
-                return false;
+            if (!TryGetNamedOrNumericValueSpan(part, out partValue)) goto fail;
 
-            while (char.IsWhiteSpace(s[exclusiveEnd - 1]))
-                exclusiveEnd--;
-
-            string part = s[start..exclusiveEnd];
-
-            if (!TryGetNamedOrNumericValue(part, out T partValue))
-                return false;
-
+            sp = nextPart.TrimStart();
             value = value.SetFlags(partValue);
+        }
 
-            if (separator < 0)
-                return true;
+        // Last part:
+        if (!TryGetNamedOrNumericValueSpan(sp, out partValue)) goto fail;
+        value = value.SetFlags(partValue);
+        return true;
 
-            start = separator + 1;
+        // Special handling for whitespace-only separators:
+        handleWhitespaceSeparator:
+        do
+        {
+            // Find next separator:
+            sepIdx = sp.IndexOf(' ');
+            int sepIndexNormalized = sepIdx < 0 ? sp.Length : sepIdx;
 
-            while (true)
+            // Handle simple cases first:
+            var nextSp = sp[sepIndexNormalized..];
+            var part = sp[..sepIndexNormalized].TrimEnd();
+            if (part.Length == 0) partValue = default;
+            else if (!TryGetNamedOrNumericValueSpan(part, out partValue)) goto tryGetPartSlow;
+
+            // Successfully got a part:
+            sp = nextSp.TrimStart();
+            value = value.SetFlags(partValue);
+            continue;
+
+            // Loop manually checking non-standard whitespace until next space or end:
+            tryGetPartSlow:
+            while (part.Length > 0)
             {
-                if (start == s.Length)
-                    return _isSeparatorWhitespace;
+                int lastPartLength = part.Length;
+                for (int j = 0; j <= part.Length; j++)
+                {
+                    if (j == part.Length || char.IsWhiteSpace(part[j]))
+                    {
+                        var partPart = part[..j];
+                        if (partPart.Length == 0) partValue = default;
+                        else if (!TryGetNamedOrNumericValueSpan(partPart, out partValue)) goto fail;
+                        part = part[j..].TrimStart();
+                        value = value.SetFlags(partValue);
+                        break;
+                    }
+                }
 
-                if (char.IsWhiteSpace(s[start]))
-                    start++;
-                else
+                // If no whitespace left, try parsing the remaining part:
+                if (part.Length == lastPartLength)
+                {
+                    if (!TryGetNamedOrNumericValueSpan(part, out partValue)) goto fail;
+                    sp = nextSp.TrimStart();
+                    value = value.SetFlags(partValue);
                     break;
+                }
+                else if (part.Length == 0)
+                {
+                    sp = nextSp.TrimStart();
+                    break;
+                }
             }
         }
+        while (sepIdx >= 0);
 
+        // Return success:
+        return true;
+
+        // Fail helper:
+        fail:
+        value = default;
+        return false;
+
+        // Parsing helpers:
+
+#if !NET9_0_OR_GREATER
         bool TryGetNamedOrNumericValue(string s, out T value)
         {
             if (_nameToValueLookup.TryGetValue(s, out value))
                 return true;
 
             return UnderlyingOperations.TryParse(s, out value);
+        }
+#endif
+
+        bool TryGetNamedOrNumericValueSpan(ReadOnlySpan<char> s, out T value)
+        {
+#if !NET9_0_OR_GREATER
+            string str = s.ToString();
+#endif
+
+#if NET9_0_OR_GREATER
+            if (_nameSpanToValueLookup.TryGetValue(s, out value))
+#else
+            if (_nameToValueLookup.TryGetValue(str, out value))
+#endif
+                return true;
+
+#if NET9_0_OR_GREATER
+            return UnderlyingOperations.TryParse(s, out value);
+#else
+            return UnderlyingOperations.TryParse(str, out value);
+#endif
         }
     }
 

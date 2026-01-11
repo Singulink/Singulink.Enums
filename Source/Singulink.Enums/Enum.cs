@@ -57,6 +57,12 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
         return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.GetValue(name) : EnumConverter<T>.Default.GetValue(name);
     }
 
+    /// <inheritdoc cref="GetValue(string, bool)" />
+    public static T GetValue(ReadOnlySpan<char> name, bool ignoreCase = false)
+    {
+        return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.GetValue(name) : EnumConverter<T>.Default.GetValue(name);
+    }
+
     /// <summary>
     /// Gets the enumeration value parsed from the specified string.
     /// </summary>
@@ -68,8 +74,17 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
         return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.Parse(s) : EnumConverter<T>.Default.Parse(s);
     }
 
+    /// <inheritdoc cref="Parse(string, bool)"/>
+    public static T Parse(ReadOnlySpan<char> s, bool ignoreCase = false)
+    {
+        return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.Parse(s) : EnumConverter<T>.Default.Parse(s);
+    }
+
     /// <inheritdoc cref="TryGetValue(string, bool, out T)"/>
     public static bool TryGetValue(string name, out T value) => EnumConverter<T>.Default.TryGetValue(name, out value);
+
+    /// <inheritdoc cref="TryGetValue(string, bool, out T)"/>
+    public static bool TryGetValue(ReadOnlySpan<char> name, out T value) => EnumConverter<T>.Default.TryGetValue(name, out value);
 
     /// <summary>
     /// Gets the enumeration value with the given name.
@@ -84,8 +99,17 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
         return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.TryGetValue(name, out value) : EnumConverter<T>.Default.TryGetValue(name, out value);
     }
 
+    /// <inheritdoc cref="TryGetValue(string, bool, out T)"/>
+    public static bool TryGetValue(ReadOnlySpan<char> name, bool ignoreCase, out T value)
+    {
+        return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.TryGetValue(name, out value) : EnumConverter<T>.Default.TryGetValue(name, out value);
+    }
+
     /// <inheritdoc cref="TryParse(string, bool, out T)"/>
     public static bool TryParse(string s, out T value) => EnumConverter<T>.Default.TryParse(s, out value);
+
+    /// <inheritdoc cref="TryParse(string, bool, out T)"/>
+    public static bool TryParse(ReadOnlySpan<char> s, out T value) => EnumConverter<T>.Default.TryParse(s, out value);
 
     /// <summary>
     /// Gets the enumeration value parsed from the specified string.
@@ -96,6 +120,12 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
     /// name="T"/>.</param>
     /// <returns><see langword="true"/> if parsing was successful, otherwise <see langword="false"/>.</returns>
     public static bool TryParse(string s, bool ignoreCase, out T value)
+    {
+        return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.TryParse(s, out value) : EnumConverter<T>.Default.TryParse(s, out value);
+    }
+
+    /// <inheritdoc cref="TryParse(string, bool, out T)"/>
+    public static bool TryParse(ReadOnlySpan<char> s, bool ignoreCase, out T value)
     {
         return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.TryParse(s, out value) : EnumConverter<T>.Default.TryParse(s, out value);
     }
