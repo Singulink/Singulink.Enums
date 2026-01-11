@@ -56,7 +56,7 @@ internal static class SplitFlagsOptionsExtensions
     {
         if (options.HasAllFlags(SplitFlagsOptions.ThrowOnRemainder))
         {
-            static void Throw(string valueParamName) => throw new ArgumentOutOfRangeException("The value contains a remainder with undefined flags.", nameof(valueParamName));
+            static void Throw(string valueParamName) => throw new ArgumentOutOfRangeException("The value contains a remainder with undefined flags.", valueParamName);
             Throw(valueParamName);
         }
     }

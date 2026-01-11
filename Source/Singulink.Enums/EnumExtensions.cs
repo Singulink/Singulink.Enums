@@ -70,7 +70,7 @@ public static partial class EnumExtensions
     /// </summary>
     /// <param name="value">The value to check.</param>
     /// <param name="paramName">The name of the parameter for the exception.</param>
-    public static void ThrowIfFlagsAreNotDefined<[DynamicallyAccessedMembers(PublicFields)] TEnum>(this TEnum value, string paramName)
+    public static void ThrowIfFlagsAreNotDefined<[DynamicallyAccessedMembers(PublicFields)] TEnum>(this TEnum value, [CallerArgumentExpression(nameof(value))] string paramName = "")
         where TEnum : unmanaged, Enum
     {
         if (!value.AreFlagsDefined())
@@ -120,7 +120,7 @@ public static partial class EnumExtensions
     /// </summary>
     /// <param name="value">The value to check.</param>
     /// <param name="paramName">The name of the parameter for the exception.</param>
-    public static void ThrowIfNotDefined<[DynamicallyAccessedMembers(PublicFields)] TEnum>(this TEnum value, string paramName)
+    public static void ThrowIfNotDefined<[DynamicallyAccessedMembers(PublicFields)] TEnum>(this TEnum value, [CallerArgumentExpression(nameof(value))] string paramName = "")
         where TEnum : unmanaged, Enum
     {
         if (!value.IsDefined())
@@ -152,7 +152,7 @@ public static partial class EnumExtensions
     /// </summary>
     /// <param name="value">The value to check.</param>
     /// <param name="paramName">The name of the parameter for the exception.</param>
-    public static void ThrowIfNotValid<[DynamicallyAccessedMembers(PublicFields)] TEnum>(this TEnum value, string paramName)
+    public static void ThrowIfNotValid<[DynamicallyAccessedMembers(PublicFields)] TEnum>(this TEnum value, [CallerArgumentExpression(nameof(value))] string paramName = "")
         where TEnum : unmanaged, Enum
     {
         if (!value.IsValid())
@@ -200,7 +200,12 @@ public static partial class EnumExtensions
         return true;
     }
 
-    internal static unsafe bool HasSingleBitSet<T>(this T value) where T : unmanaged, Enum
+    /// <summary>
+    /// Determines whether the value has a single bit set (i.e., only one flag is set).
+    /// </summary>
+    /// <param name="value">The enumeration value.</param>
+    /// <returns><see langword="true"/> if the value only has a single bit set, otherwise <see langword="false"/>.</returns>
+    public static unsafe bool HasSingleBitSet<T>(this T value) where T : unmanaged, Enum
     {
         if (EqualityComparer<T>.Default.Equals(value, default))
             return false;

@@ -160,7 +160,10 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         if (TryParse(s, out T value))
             return value;
 
-        throw new FormatException("Input string was not in a correct format.");
+        [DoesNotReturn]
+        static void Throw() => throw new FormatException("Input string was not in a correct format.");
+        Throw();
+        return default;
     }
 
     /// <inheritdoc cref="Enum{T}.Parse(string, bool)"/>
@@ -169,7 +172,10 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         if (TryParse(s, out T value))
             return value;
 
-        throw new FormatException("Input string was not in a correct format.");
+        [DoesNotReturn]
+        static void Throw() => throw new FormatException("Input string was not in a correct format.");
+        Throw();
+        return default;
     }
 
     /// <inheritdoc cref="EnumExtensions.AsString{T}(T)"/>
