@@ -17,13 +17,33 @@ public class FlagsConvertTests
     }
 
     [TestMethod]
-    public void ToStringCustomSeparator()
+    public void ToStringCustom3Separator()
     {
         var converter = new EnumConverter<FlagsEnum>(opt => opt.Separator = " | ");
 
         converter.AsString(FlagsEnum.All, SplitFlagsOptions.None).ShouldBe("All");
         converter.AsString(FlagsEnum.All, SplitFlagsOptions.AllMatchingFlags).ShouldBe("A | B | C | D | All");
         converter.AsString(FlagsEnum.A | FlagsEnum.D).ShouldBe("A | D");
+    }
+
+    [TestMethod]
+    public void ToStringCustom2Separator()
+    {
+        var converter = new EnumConverter<FlagsEnum>(opt => opt.Separator = ". ");
+
+        converter.AsString(FlagsEnum.All, SplitFlagsOptions.None).ShouldBe("All");
+        converter.AsString(FlagsEnum.All, SplitFlagsOptions.AllMatchingFlags).ShouldBe("A. B. C. D. All");
+        converter.AsString(FlagsEnum.A | FlagsEnum.D).ShouldBe("A. D");
+    }
+
+    [TestMethod]
+    public void ToStringCustom1Separator()
+    {
+        var converter = new EnumConverter<FlagsEnum>(opt => opt.Separator = " ");
+
+        converter.AsString(FlagsEnum.All, SplitFlagsOptions.None).ShouldBe("All");
+        converter.AsString(FlagsEnum.All, SplitFlagsOptions.AllMatchingFlags).ShouldBe("A B C D All");
+        converter.AsString(FlagsEnum.A | FlagsEnum.D).ShouldBe("A D");
     }
 
     [TestMethod]
