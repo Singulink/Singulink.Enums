@@ -41,7 +41,7 @@ public static partial class EnumExtensions
         int[] rented = null;
         Span<int> foundItems = doStackAlloc ? stackalloc int[MaxStackAllocLength] : (rented = ArrayPool<int>.Shared.Rent(Enum<T>.Values.Length));
 
-        SplitFlagsDescending(value, allMatchingFlags, foundItems, out int foundItemsCount, out T remainder);
+        SplitFlagsDescending(value, allMatchingFlags, foundItems, out int foundItemsCount, out T remainder, Enum<T>.Names.AsSpan(), out _);
 
         bool skipRemainder = EqualityComparer<T>.Default.Equals(remainder, default) || options.HasAllFlags(SplitFlagsOptions.ExcludeRemainder);
         T[] results;
@@ -76,11 +76,14 @@ public static partial class EnumExtensions
         bool allMatchingFlags,
         Span<int> foundItems,
         out int foundItemsCount,
-        out T remainder)
+        out T remainder,
+        ReadOnlySpan<string> names,
+        out int resultLength)
         where T : unmanaged, Enum
     {
         foundItemsCount = 0;
         remainder = value;
+        resultLength = 0;
 
         if (allMatchingFlags)
         {
@@ -95,6 +98,7 @@ public static partial class EnumExtensions
                 {
                     foundItems[foundItemsCount++] = i;
                     remainder = remainder.ClearFlags(definedValue);
+                    resultLength += names[i].Length;
                 }
             }
         }
@@ -111,6 +115,7 @@ public static partial class EnumExtensions
                 {
                     foundItems[foundItemsCount++] = i;
                     remainder = remainder.ClearFlags(definedValue);
+                    resultLength += names[i].Length;
 
                     if (EqualityComparer<T>.Default.Equals(remainder, default))
                         break;

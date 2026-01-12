@@ -52,7 +52,7 @@ public static partial class EnumExtensions
     }
 
     /// <inheritdoc cref="HasAnyFlag{T}(T, T)"/>
-    public static bool HasAnyFlag<T>(this T value, ReadOnlySpan<T> flags) where T : unmanaged, Enum
+    public static bool HasAnyFlag<T>(this T value, params ReadOnlySpan<T> flags) where T : unmanaged, Enum
     {
         foreach (var flag in flags)
         {

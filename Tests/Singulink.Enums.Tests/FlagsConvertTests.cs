@@ -17,13 +17,33 @@ public class FlagsConvertTests
     }
 
     [TestMethod]
-    public void ToStringCustomSeparator()
+    public void ToStringCustom3Separator()
     {
         var converter = new EnumConverter<FlagsEnum>(opt => opt.Separator = " | ");
 
         converter.AsString(FlagsEnum.All, SplitFlagsOptions.None).ShouldBe("All");
         converter.AsString(FlagsEnum.All, SplitFlagsOptions.AllMatchingFlags).ShouldBe("A | B | C | D | All");
         converter.AsString(FlagsEnum.A | FlagsEnum.D).ShouldBe("A | D");
+    }
+
+    [TestMethod]
+    public void ToStringCustom2Separator()
+    {
+        var converter = new EnumConverter<FlagsEnum>(opt => opt.Separator = ". ");
+
+        converter.AsString(FlagsEnum.All, SplitFlagsOptions.None).ShouldBe("All");
+        converter.AsString(FlagsEnum.All, SplitFlagsOptions.AllMatchingFlags).ShouldBe("A. B. C. D. All");
+        converter.AsString(FlagsEnum.A | FlagsEnum.D).ShouldBe("A. D");
+    }
+
+    [TestMethod]
+    public void ToStringCustom1Separator()
+    {
+        var converter = new EnumConverter<FlagsEnum>(opt => opt.Separator = " ");
+
+        converter.AsString(FlagsEnum.All, SplitFlagsOptions.None).ShouldBe("All");
+        converter.AsString(FlagsEnum.All, SplitFlagsOptions.AllMatchingFlags).ShouldBe("A B C D All");
+        converter.AsString(FlagsEnum.A | FlagsEnum.D).ShouldBe("A D");
     }
 
     [TestMethod]
@@ -77,6 +97,7 @@ public class FlagsConvertTests
         converter.Parse("  All  ").ShouldBe(FlagsEnum.All);
         converter.Parse("  A B C   D  All  ").ShouldBe(FlagsEnum.All);
         converter.Parse("A D").ShouldBe(FlagsEnum.A | FlagsEnum.D);
+        converter.Parse("  \tA B\tC \t D \t\tAll\t ").ShouldBe(FlagsEnum.All);
     }
 
     [TestMethod]
@@ -104,10 +125,9 @@ public class FlagsConvertTests
 
     [TestMethod]
     [DataRow("")]
-    [DataRow("  ")]
-    [DataRow("  ,")]
-    [DataRow(",  ")]
-    [DataRow("   ")]
+    [DataRow("  ,,")]
+    [DataRow(",,  ")]
+    [DataRow(" ,, ")]
     public void InvalidSeparator(string separator)
     {
         Should.Throw<ArgumentException>(() => new EnumConverter<FlagsEnum>(opt => opt.Separator = separator));

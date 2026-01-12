@@ -88,6 +88,22 @@ public class FlagsTests
         value.HasAnyFlag([Flags.C, Flags.D]).ShouldBeFalse();
     }
 
+    [TestMethod]
+    public void HasSingleBitSet()
+    {
+        Flags.A.HasSingleBitSet().ShouldBeTrue();
+        Flags.B.HasSingleBitSet().ShouldBeTrue();
+        Flags.C.HasSingleBitSet().ShouldBeTrue();
+        Flags.D.HasSingleBitSet().ShouldBeTrue();
+        ((Flags)16).HasSingleBitSet().ShouldBeTrue();
+
+        Flags.None.HasSingleBitSet().ShouldBeFalse();
+        (Flags.A | Flags.B).HasSingleBitSet().ShouldBeFalse();
+        (Flags.A | Flags.C).HasSingleBitSet().ShouldBeFalse();
+        (Flags.A | Flags.B | Flags.C).HasSingleBitSet().ShouldBeFalse();
+        Flags.All.HasSingleBitSet().ShouldBeFalse();
+    }
+
     [Flags]
     private enum Flags : short
     {

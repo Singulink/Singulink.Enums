@@ -12,7 +12,7 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
     where T : unmanaged, Enum
 {
     private static readonly bool _isFlagsEnum = typeof(T).GetCustomAttribute<FlagsAttribute>() is not null;
-    private static readonly (ImmutableArray<T> Values, ImmutableArray<string> Names) _info = InitInfo();
+    private static readonly (ImmutableArray<T> Values, ImmutableArray<string> Names, ImmutableArray<int> FirstItemWithValueLookup) _info = InitInfo();
     private static readonly int _valuesLength = _info.Values.Length;
     private static readonly int _defaultIndex = Values.IndexOf(default);
 
@@ -57,6 +57,12 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
         return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.GetValue(name) : EnumConverter<T>.Default.GetValue(name);
     }
 
+    /// <inheritdoc cref="GetValue(string, bool)" />
+    public static T GetValue(ReadOnlySpan<char> name, bool ignoreCase = false)
+    {
+        return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.GetValue(name) : EnumConverter<T>.Default.GetValue(name);
+    }
+
     /// <summary>
     /// Gets the enumeration value parsed from the specified string.
     /// </summary>
@@ -68,8 +74,17 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
         return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.Parse(s) : EnumConverter<T>.Default.Parse(s);
     }
 
+    /// <inheritdoc cref="Parse(string, bool)"/>
+    public static T Parse(ReadOnlySpan<char> s, bool ignoreCase = false)
+    {
+        return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.Parse(s) : EnumConverter<T>.Default.Parse(s);
+    }
+
     /// <inheritdoc cref="TryGetValue(string, bool, out T)"/>
     public static bool TryGetValue(string name, out T value) => EnumConverter<T>.Default.TryGetValue(name, out value);
+
+    /// <inheritdoc cref="TryGetValue(string, bool, out T)"/>
+    public static bool TryGetValue(ReadOnlySpan<char> name, out T value) => EnumConverter<T>.Default.TryGetValue(name, out value);
 
     /// <summary>
     /// Gets the enumeration value with the given name.
@@ -84,8 +99,17 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
         return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.TryGetValue(name, out value) : EnumConverter<T>.Default.TryGetValue(name, out value);
     }
 
+    /// <inheritdoc cref="TryGetValue(string, bool, out T)"/>
+    public static bool TryGetValue(ReadOnlySpan<char> name, bool ignoreCase, out T value)
+    {
+        return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.TryGetValue(name, out value) : EnumConverter<T>.Default.TryGetValue(name, out value);
+    }
+
     /// <inheritdoc cref="TryParse(string, bool, out T)"/>
     public static bool TryParse(string s, out T value) => EnumConverter<T>.Default.TryParse(s, out value);
+
+    /// <inheritdoc cref="TryParse(string, bool, out T)"/>
+    public static bool TryParse(ReadOnlySpan<char> s, out T value) => EnumConverter<T>.Default.TryParse(s, out value);
 
     /// <summary>
     /// Gets the enumeration value parsed from the specified string.
@@ -96,6 +120,12 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
     /// name="T"/>.</param>
     /// <returns><see langword="true"/> if parsing was successful, otherwise <see langword="false"/>.</returns>
     public static bool TryParse(string s, bool ignoreCase, out T value)
+    {
+        return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.TryParse(s, out value) : EnumConverter<T>.Default.TryParse(s, out value);
+    }
+
+    /// <inheritdoc cref="TryParse(string, bool, out T)"/>
+    public static bool TryParse(ReadOnlySpan<char> s, bool ignoreCase, out T value)
     {
         return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.TryParse(s, out value) : EnumConverter<T>.Default.TryParse(s, out value);
     }
@@ -113,7 +143,13 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
         if (_valuesLength <= 20)
             return _info.Values.IndexOf(value);
 
-        return BinarySearchValues(value);
+        int idx = BinarySearchValues(value);
+
+        // If there are duplicate values, we want to return the first one.
+        if (!_info.FirstItemWithValueLookup.IsDefault)
+            idx = _info.FirstItemWithValueLookup[idx];
+
+        return idx;
     }
 
     internal static void EnsureIsFlagsEnum()
@@ -144,19 +180,49 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
         static ImmutableArray<TValue> ValuesAs<TValue>() => Unsafe.As<ImmutableArray<T>, ImmutableArray<TValue>>(ref Unsafe.AsRef(in _info.Values));
     }
 
-    private static (ImmutableArray<T> Values, ImmutableArray<string> Names) InitInfo()
+    private static (ImmutableArray<T> Values, ImmutableArray<string> Names, ImmutableArray<int> FirstItemWithValueLookup) InitInfo()
     {
         var members = GetFields().Select(f => (f.Name, Value: (T)f.GetValue(null)!));
 
+        // For flags enums we order by unsigned value to ensure that bits are ordered correctly, but for non-flags enums we order by signed value.
         if (_isFlagsEnum)
-            members = members.OrderBy(e => new UnsignedComparable(e.Value));
+            members = members.OrderBy(m => new UnsignedComparable(m.Value));
+        else
+            members = members.OrderBy(m => m.Value);
 
-        var membersList = members.ToList();
+        var membersList = members.ToArray();
 
         var values = membersList.Select(m => m.Value).ToImmutableArray();
         var names = membersList.Select(m => m.Name).ToImmutableArray();
 
-        return (values, names);
+        // We only need to build the lookup if there are duplicate values - we will compare to default to determine if we need to worry about this, so only
+        // create it if it's actually needed - this is not the maximally optimal solution for looking up first index by value, but it's good enough & allows us
+        // to easily avoid the overhead when not needed, and only requires 1 side-buffer.
+        // That is, this solution is simple, but still keeps the common case as fast as possible, while providing correct behaviour and decent performance in
+        // at least all cases.
+        ImmutableArray<int> firstItemWithValueLookup = default;
+        if (values.Distinct().Count() != values.Length)
+        {
+            var builder = ImmutableArray.CreateBuilder<int>(values.Length);
+            builder.Add(0);
+
+            int lastIndex = 0;
+            var lastValue = values[0];
+            for (int i = 1; i < values.Length; i++)
+            {
+                if (!EqualityComparer<T>.Default.Equals(values[i], lastValue))
+                {
+                    lastValue = values[i];
+                    lastIndex = i;
+                }
+
+                builder.Add(lastIndex);
+            }
+
+            firstItemWithValueLookup = builder.DrainToImmutable();
+        }
+
+        return (values, names, firstItemWithValueLookup);
     }
 
     private unsafe readonly struct UnsignedComparable(T value) : IComparable<UnsignedComparable>
@@ -172,7 +238,7 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
             else if (sizeof(T) is 4)
                 return UnsafeMethods.BitCast<T, uint>(_value).CompareTo(UnsafeMethods.BitCast<T, uint>(other._value));
             else if (sizeof(T) is 8)
-                return UnsafeMethods.BitCast<T, ulong>(_value).CompareTo(UnsafeMethods.BitCast<T, long>(other._value));
+                return UnsafeMethods.BitCast<T, ulong>(_value).CompareTo(UnsafeMethods.BitCast<T, ulong>(other._value));
 
             throw new NotSupportedException();
         }

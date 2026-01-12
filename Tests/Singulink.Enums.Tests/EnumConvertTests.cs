@@ -77,6 +77,23 @@ public class EnumConvertTests
         Should.Throw<FormatException>(() => converter.Parse("X"));
     }
 
+    [TestMethod]
+    public void WithRepeats()
+    {
+        var converterA = EnumConverter<WithRepeatsA>.Default;
+        var converterB = EnumConverter<WithRepeatsB>.Default;
+
+        converterA.AsString(WithRepeatsA.A).ShouldBe("A");
+        converterA.AsString(WithRepeatsA.E).ShouldBe("E");
+        converterA.AsString(WithRepeatsA.K).ShouldBe("K");
+        converterA.AsString(WithRepeatsA.T).ShouldBe("T");
+        converterA.AsString(WithRepeatsA.Y).ShouldBe("Y");
+
+        converterB.AsString(WithRepeatsB.A).ShouldBe("A");
+        converterB.AsString(WithRepeatsB.E).ShouldBe("E");
+        converterB.AsString(WithRepeatsB.K).ShouldBe("K");
+    }
+
     private enum NormalEnum : byte
     {
         [Display(Name = "None (Display)")]
@@ -96,5 +113,51 @@ public class EnumConvertTests
         A = 1,
         B = 2,
         C = 3,
+    }
+
+    private enum WithRepeatsA
+    {
+        A = 0,
+        B = 0,
+        C = 0,
+        D = 0,
+        E = 1,
+        F = 1,
+        G = 1,
+        H = 1,
+        I = 1,
+        J = 1,
+        K = 2,
+        L = 2,
+        M = 2,
+        N = 2,
+        O = 2,
+        P = 2,
+        Q = 2,
+        R = 2,
+        S = 2,
+        T = 3,
+        U = 3,
+        V = 3,
+        W = 3,
+        X = 3,
+        Y = 4,
+        Z = 4,
+    }
+
+    private enum WithRepeatsB
+    {
+        A = 0,
+        B = 0,
+        C = 0,
+        D = 0,
+        E = 1,
+        F = 1,
+        G = 1,
+        H = 1,
+        I = 1,
+        J = 1,
+        K = 2,
+        L = 2,
     }
 }

@@ -49,7 +49,7 @@ public static partial class EnumExtensions
     }
 
     /// <inheritdoc cref="ClearFlags{T}(T, T)"/>
-    public static T ClearFlags<T>(this T value, ReadOnlySpan<T> flags) where T : unmanaged, Enum
+    public static T ClearFlags<T>(this T value, params ReadOnlySpan<T> flags) where T : unmanaged, Enum
     {
         foreach (var flag in flags)
             value = value.ClearFlags(flag);

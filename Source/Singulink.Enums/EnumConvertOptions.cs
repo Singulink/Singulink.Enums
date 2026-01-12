@@ -14,12 +14,15 @@ public class EnumConvertOptions
     internal char _separatorChar = ',';
 
     /// <summary>
-    /// Gets or sets a string containing a separator character with an optional leading and trailing space to be used for flags enumerations. Ignored for
+    /// Gets or sets a string containing a separator character with optional leading and trailing whitespace to be used for flags enumerations. Ignored for
     /// non-flags enumerations. Defaults to <c>", "</c> (comma followed by a space).
     /// </summary>
     /// <remarks>
-    /// The separator must contain exactly one separator character with an optional leading and trailing space. The spaces are used for formatting when a value
-    /// is converted to a string, but the spaces are optional when parsing a string. The separator character cannot be a hyphen (<c>'-'</c>).
+    /// <para>
+    /// The separator must contain exactly one separator character with optional leading and trailing whitespace. The spaces are used for formatting when a
+    /// value is converted to a string, but the spaces are optional when parsing a string. The separator character cannot be a hyphen (<c>'-'</c>).</para>
+    /// <para>
+    /// If the separator is set to whitespace only, any whitespace character can be used as separators when parsing a string.</para>
     /// </remarks>
     /// <exception cref="ArgumentException">A hyphen was used as the separator character.</exception>
     public string Separator
@@ -64,27 +67,11 @@ public class EnumConvertOptions
         return this;
     }
 
-    private static char GetSeparatorChar(string value)
+    private static char GetSeparatorChar(string value) => value.AsSpan().Trim() switch
     {
-        if (value.Length == 1)
-        {
-            return value[0];
-        }
-        else if (value.Length == 2)
-        {
-            if (char.IsWhiteSpace(value[0]) && !char.IsWhiteSpace(value[1]))
-                return value[1];
-
-            if (!char.IsWhiteSpace(value[0]) && char.IsWhiteSpace(value[1]))
-                return value[0];
-        }
-        else if (value.Length == 3)
-        {
-            if (char.IsWhiteSpace(value[0]) && !char.IsWhiteSpace(value[1]) && char.IsWhiteSpace(value[2]))
-                return value[1];
-        }
-
-        throw new ArgumentException(
-            "Separator must contain exactly 1 separator character with an optional leading and trailing space.", nameof(value));
-    }
+        [] when !string.IsNullOrEmpty(value) => ' ',
+        [var c] => c,
+        _ => throw new ArgumentException(
+            "Separator must contain exactly 1 separator character with optional leading and trailing whitespace.", nameof(value)),
+    };
 }
