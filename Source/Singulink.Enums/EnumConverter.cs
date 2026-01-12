@@ -83,7 +83,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
 
             var value = (T)field.GetValue(null)!;
 
-#if NET8_0_OR_GREATER
+#if NET
             if (!nameToValueLookup.TryAdd(name, value))
                 throw new ArgumentException($"Duplicate enumeration name '{name}'.");
 
@@ -147,7 +147,16 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         if (!TryGetValue(name, out T value))
         {
             [DoesNotReturn]
-            static void Throw(ReadOnlySpan<char> name) => throw new MissingMemberException($"An enumeration with the name '{name}' was not found.");
+            static void Throw(ReadOnlySpan<char> name)
+            {
+#if NET
+                string message = $"An enumeration with the name '{name}' was not found.";
+#else
+                string message = $"An enumeration with the name '{name.ToString()}' was not found.";
+#endif
+                throw new MissingMemberException(message);
+            }
+
             Throw(name);
         }
 
@@ -422,7 +431,13 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         // Note: the single name check is opportunistic only for flags enums; this allows us to catch likely cases fast.
         sp = sp.Trim();
         if (sp.Length == 0) goto fail;
-        if (!Enum<T>.IsFlagsEnum || (sp.Length <= 12 && !sp.Contains(_parseSeparator)))
+        if (!Enum<T>.IsFlagsEnum || (sp.Length <= 12
+#if NET
+            && !sp.Contains(_parseSeparator)))
+#else
+#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
+            ))
+#endif
         {
 #if !NET9_0_OR_GREATER
             if (s is not null && sp.Length == s.Length)
@@ -438,7 +453,16 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
                 }
             }
 
-            if (!Enum<T>.IsFlagsEnum || _parseSeparator != ' ') goto fail;
+            if (!Enum<T>.IsFlagsEnum
+#if NET
+                || _parseSeparator != ' ')
+#else
+                )
+#pragma warning restore SA1009 // Closing parenthesis should be spaced correctly
+#endif
+            {
+                goto fail;
+            }
         }
 
         // Check if it's whitespace separators, which needs special handling:
