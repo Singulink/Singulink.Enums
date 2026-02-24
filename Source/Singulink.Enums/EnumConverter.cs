@@ -269,9 +269,9 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
 
     // Helper that creates the callback for creating the string result in AsString.
     // It optimizes for small separator lengths (and also the default value specifically) to ensure best performance for cases most affected.
-    private static unsafe SpanAction<char, IntPtr> CreateAsStringHelper(string toStringSeperator)
+    private static unsafe SpanAction<char, IntPtr> CreateAsStringHelper(string toStringSeparator)
     {
-        return toStringSeperator switch
+        return toStringSeparator switch
         {
             [var c0] => (chars, state) =>
             {
@@ -370,7 +370,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
                 var foundItems = stateValue.FoundItems;
                 string remainderString = stateValue.RemainderString;
                 var names = stateValue.Names;
-                var toStringSeperatorSp = toStringSeperator.AsSpan();
+                var toStringSeparatorSp = toStringSeparator.AsSpan();
 
                 for (int i = foundItems.Length - 1; i > 0; i--)
                 {
@@ -378,8 +378,8 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
                     string name = names[item];
                     name.CopyTo(chars);
                     chars = chars[name.Length..];
-                    toStringSeperatorSp.CopyTo(chars);
-                    chars = chars[toStringSeperatorSp.Length..];
+                    toStringSeparatorSp.CopyTo(chars);
+                    chars = chars[toStringSeparatorSp.Length..];
                 }
 
                 Debug.Assert(foundItems.Length > 0, "Expected at least one found item.");
@@ -388,8 +388,8 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
                 if (remainderString is not null)
                 {
                     chars = chars[lastName.Length..];
-                    toStringSeperatorSp.CopyTo(chars);
-                    chars = chars[toStringSeperatorSp.Length..];
+                    toStringSeparatorSp.CopyTo(chars);
+                    chars = chars[toStringSeparatorSp.Length..];
                     remainderString?.CopyTo(chars);
                 }
             },

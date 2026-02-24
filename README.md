@@ -141,4 +141,4 @@ The following is a comparison between Singulink Enums, Enums.Net (v5.0) and oper
 |---------------------------------- |-------------|-----------|-----------|
 ```
 
-\* Split flags and flags converted to strings are returned in descending order based on the highest bits set first (with any remainder added to the end). This behavior differs from Enums.Net and system methods as this is usually what developers want. You also have the option to return all matching flags or just the minimal set of flags that can be combined to form the original value (see [`SplitFlagsOptions`](https://www.singulink.com/Docs/Singulink.Enums/api/Singulink.Enums.SplitFlagsOptions.html)).
+\* Split flags and flags converted to strings are returned in ascending order based on the highest bits set (with any remainder added to the end). This behavior differs from Enums.Net and system methods as this is usually what developers want. You also have the option to return all matching flags or just the minimal set of flags that can be combined to form the original value (see [`SplitFlagsOptions`](https://www.singulink.com/Docs/Singulink.Enums/api/Singulink.Enums.SplitFlagsOptions.html)).
