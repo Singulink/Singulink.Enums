@@ -12,7 +12,7 @@ public static partial class EnumExtensions
 {
     /// <summary>
     /// Splits the value into the defined flags that make up the value, plus any remainder (if <see cref="SplitFlagsOptions.ExcludeRemainder"/> is not set).
-    /// Defined flags are returned in descending order based on the highest bits set first.
+    /// Defined flags are returned in ascending order based on the highest bits set.
     /// </summary>
     /// <param name="value">The value to split.</param>
     /// <param name="options">The options to use for the splitting operation.</param>
@@ -62,9 +62,7 @@ public static partial class EnumExtensions
         }
 
         for (int i = 0; i < foundItemsCount; i++)
-        {
             results[foundItemsCount - 1 - i] = Enum<T>.Values[foundItems[i]];
-        }
 
         if (rented is not null)
             ArrayPool<int>.Shared.Return(rented);
