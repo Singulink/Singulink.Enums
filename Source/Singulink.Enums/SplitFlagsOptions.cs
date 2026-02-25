@@ -27,6 +27,11 @@ public enum SplitFlagsOptions
     AllMatchingFlags = 1,
 
     /// <summary>
+    /// Indicates that only single-bit flags should be considered when splitting the value and multi-bit flags should be ignored.
+    /// </summary>
+    SingleBitFlagsOnly = 2,
+
+    /// <summary>
     /// Exclude any remainder that cannot be represented by any defined flags from the result. This flag takes precedence over the <see
     /// cref="ThrowOnRemainder"/> flag if both are set.
     /// </summary>

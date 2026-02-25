@@ -41,7 +41,8 @@ public static partial class EnumExtensions
         int[] rented = null;
         Span<int> foundItems = doStackAlloc ? stackalloc int[MaxStackAllocLength] : (rented = ArrayPool<int>.Shared.Rent(Enum<T>.Values.Length));
 
-        SplitFlagsDescending(value, allMatchingFlags, foundItems, out int foundItemsCount, out T remainder, Enum<T>.Names.AsSpan(), out _);
+        bool singleBitFlagsOnly = options.HasAllFlags(SplitFlagsOptions.SingleBitFlagsOnly);
+        SplitFlagsDescending(value, allMatchingFlags, singleBitFlagsOnly, foundItems, out int foundItemsCount, out T remainder);
 
         bool skipRemainder = EqualityComparer<T>.Default.Equals(remainder, default) || options.HasAllFlags(SplitFlagsOptions.ExcludeRemainder);
         T[] results;
@@ -74,22 +75,22 @@ public static partial class EnumExtensions
     internal static void SplitFlagsDescending<[DynamicallyAccessedMembers(PublicFields)] T>(
         T value,
         bool allMatchingFlags,
+        bool singleBitFlagsOnly,
         Span<int> foundItems,
         out int foundItemsCount,
-        out T remainder,
-        ReadOnlySpan<string> names,
-        out int resultLength)
+        out T remainder)
         where T : unmanaged, Enum
     {
         foundItemsCount = 0;
         remainder = value;
-        resultLength = 0;
+
+        var values = singleBitFlagsOnly ? EnumFlagsInfo<T>.SingleBitValues : Enum<T>.Values;
 
         if (allMatchingFlags)
         {
-            for (int i = Enum<T>.Values.Length - 1; i >= 0; i--)
+            for (int i = values.Length - 1; i >= 0; i--)
             {
-                var definedValue = Enum<T>.Values[i];
+                var definedValue = values[i];
 
                 if (EqualityComparer<T>.Default.Equals(definedValue, default))
                     continue;
@@ -98,15 +99,14 @@ public static partial class EnumExtensions
                 {
                     foundItems[foundItemsCount++] = i;
                     remainder = remainder.ClearFlags(definedValue);
-                    resultLength += names[i].Length;
                 }
             }
         }
         else
         {
-            for (int i = Enum<T>.Values.Length - 1; i >= 0; i--)
+            for (int i = values.Length - 1; i >= 0; i--)
             {
-                var definedValue = Enum<T>.Values[i];
+                var definedValue = values[i];
 
                 if (EqualityComparer<T>.Default.Equals(definedValue, default))
                     continue;
@@ -115,7 +115,6 @@ public static partial class EnumExtensions
                 {
                     foundItems[foundItemsCount++] = i;
                     remainder = remainder.ClearFlags(definedValue);
-                    resultLength += names[i].Length;
 
                     if (EqualityComparer<T>.Default.Equals(remainder, default))
                         break;

@@ -97,7 +97,7 @@ public class FlagsConvertTests
         converter.Parse("  All  ").ShouldBe(FlagsEnum.All);
         converter.Parse("  A B C   D  All  ").ShouldBe(FlagsEnum.All);
         converter.Parse("A D").ShouldBe(FlagsEnum.A | FlagsEnum.D);
-        converter.Parse("  \tA B\tC \t D \t\tAll\t ").ShouldBe(FlagsEnum.All);
+        converter.Parse("  \tA B\t C \t D \t\tAll\t ").ShouldBe(FlagsEnum.All);
     }
 
     [TestMethod]
@@ -134,17 +134,16 @@ public class FlagsConvertTests
     }
 
     [TestMethod]
-    public void ParseInvalidSeparator()
+    [DataRow("A,,B")]
+    [DataRow(" , ")]
+    [DataRow(",")]
+    [DataRow("A,")]
+    [DataRow("A, ")]
+    [DataRow(",B")]
+    [DataRow(" ,B")]
+    public void ParseInvalidSeparator(string s)
     {
-        var converter = EnumConverter<FlagsEnum>.Default;
-
-        Should.Throw<FormatException>(() => converter.Parse("A,,B"));
-        Should.Throw<FormatException>(() => converter.Parse(" , "));
-        Should.Throw<FormatException>(() => converter.Parse(","));
-        Should.Throw<FormatException>(() => converter.Parse("A,"));
-        Should.Throw<FormatException>(() => converter.Parse("A, "));
-        Should.Throw<FormatException>(() => converter.Parse(",B"));
-        Should.Throw<FormatException>(() => converter.Parse(" ,B"));
+        Should.Throw<FormatException>(() => EnumConverter<FlagsEnum>.Default.Parse(s));
     }
 
     [TestMethod]

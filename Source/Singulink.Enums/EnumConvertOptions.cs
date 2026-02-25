@@ -19,12 +19,13 @@ public class EnumConvertOptions
     /// </summary>
     /// <remarks>
     /// <para>
-    /// The separator must contain exactly one separator character with optional leading and trailing whitespace. The spaces are used for formatting when a
-    /// value is converted to a string, but the spaces are optional when parsing a string. The separator character cannot be a hyphen (<c>'-'</c>).</para>
+    /// The separator must contain a separator character with optional leading and trailing whitespace. The whitespace is used for formatting when a value is
+    /// converted to a string, but any whitespace is optional when parsing a string. The separator character cannot be a hyphen (<c>'-'</c>).</para>
     /// <para>
-    /// If the separator is set to whitespace only, any whitespace character can be used as separators when parsing a string.</para>
+    /// If the separator string contains only whitespace, then it must either consist of a single distinct whitespace character (repeated as many times as
+    /// desired for formatting), or it must contain a newline character, in which case the newline character will be used as the parsing separator character
+    /// regardless of what other whitespace it contains.</para>
     /// </remarks>
-    /// <exception cref="ArgumentException">A hyphen was used as the separator character.</exception>
     public string Separator
     {
         get => _separator;
@@ -67,11 +68,27 @@ public class EnumConvertOptions
         return this;
     }
 
-    private static char GetSeparatorChar(string value) => value.AsSpan().Trim() switch
+    private static char GetSeparatorChar(string value)
     {
-        [] when !string.IsNullOrEmpty(value) => ' ',
-        [var c] => c,
-        _ => throw new ArgumentException(
-            "Separator must contain exactly 1 separator character with optional leading and trailing whitespace.", nameof(value)),
-    };
+        if (value.Length is 1)
+            return value[0];
+
+        var trimmed = value.AsSpan().Trim();
+
+        if (trimmed.Length is 1)
+            return trimmed[0];
+
+        if (trimmed.Length is 0)
+        {
+            if (value.Contains('\n'))
+                return '\n';
+
+            char[] distinct = [.. value.Distinct()];
+
+            if (distinct.Length is 1)
+                return distinct[0];
+        }
+
+        throw new ArgumentException("Separator must contain a separator character with optional leading and trailing whitespace.", nameof(value));
+    }
 }

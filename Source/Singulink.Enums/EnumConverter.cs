@@ -39,6 +39,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
 
     private readonly string _toStringSeparator;
     private readonly char _parseSeparator;
+    private readonly bool _isSeparatorWhitespace;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EnumConverter{T}"/> class.
@@ -56,6 +57,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         {
             _toStringSeparator = options.Separator;
             _parseSeparator = options._separatorChar;
+            _isSeparatorWhitespace = char.IsWhiteSpace(_parseSeparator);
         }
         else
         {
@@ -76,27 +78,22 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
                 throw new ArgumentException("Null or empty enumeration name.");
 
             if (Enum<T>.IsFlagsEnum && name.Contains(_parseSeparator))
-                throw new ArgumentException($"Enumeration name '{name}' contains the separator character.");
-
-            if (Enum<T>.IsFlagsEnum && _parseSeparator == ' ' && name.Any(char.IsWhiteSpace))
-                throw new ArgumentException($"Enumeration name '{name}' contains the separator character.");
+                throw new ArgumentException($"Enumeration name '{name}' contains the parsing separator character '{_parseSeparator}'.");
 
             var value = (T)field.GetValue(null)!;
 
-#if NET
+            if (UnderlyingOperations.TryParse(name, out T parsedValue) && !EqualityComparer<T>.Default.Equals(parsedValue, value))
+            {
+                throw new ArgumentException(
+                    $"Numeric enumeration name '{name}' is not valid because it can be parsed as the value '{parsedValue}' " +
+                    $"which does not match the actual value '{value}'.");
+            }
+
             if (!nameToValueLookup.TryAdd(name, value))
                 throw new ArgumentException($"Duplicate enumeration name '{name}'.");
 
             valueToNameLookup.TryAdd(value, name);
-#else
-            if (nameToValueLookup.ContainsKey(name))
-                throw new ArgumentException($"Duplicate enumeration name '{name}'.");
 
-            nameToValueLookup.Add(name, value);
-
-            if (!valueToNameLookup.ContainsKey(value))
-                valueToNameLookup.Add(value, name);
-#endif
             int nameIndex = Enum<T>.GetFirstValueIndex(value);
 
             while (names[nameIndex] is not null)
@@ -221,20 +218,22 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         Span<int> foundItems = doStackAlloc ? stackalloc int[MaxStackAllocLength] : (rented = ArrayPool<int>.Shared.Rent(Enum<T>.Values.Length));
         string result;
 
-        EnumExtensions.SplitFlagsDescending(value, allMatchingFlags, foundItems, out int foundItemsCount, out T remainder, _names.AsSpan(), out int resultLength);
+        bool singleBitFlagsOnly = flagsOptions.HasAllFlags(SplitFlagsOptions.SingleBitFlagsOnly);
+        EnumExtensions.SplitFlagsDescending(value, allMatchingFlags, singleBitFlagsOnly, foundItems, out int foundItemsCount, out T remainder);
 
         bool skipRemainder = EqualityComparer<T>.Default.Equals(remainder, default) || flagsOptions.HasAllFlags(SplitFlagsOptions.ExcludeRemainder);
         string remainderString = null;
+        int resultLength;
 
         if (skipRemainder)
         {
             if (foundItemsCount is 0)
             {
                 result = Enum<T>.DefaultIndex >= 0 ? _names[Enum<T>.DefaultIndex] : "0";
-                goto done;
+                goto Done;
             }
 
-            resultLength += _toStringSeparator.Length * (foundItemsCount - 1);
+            resultLength = _toStringSeparator.Length * (foundItemsCount - 1);
         }
         else
         {
@@ -244,18 +243,21 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
             if (foundItemsCount is 0)
             {
                 result = remainderString;
-                goto done;
+                goto Done;
             }
 
-            resultLength += (_toStringSeparator.Length * foundItemsCount) + remainderString.Length;
+            resultLength = (_toStringSeparator.Length * foundItemsCount) + remainderString.Length;
         }
 
         foundItems = foundItems[..foundItemsCount];
 
+        foreach (int item in foundItems)
+            resultLength += _names[item].Length;
+
         var asStringState = new AsStringState(foundItems, _names.AsSpan(), remainderString);
         result = StringMethods.Create(resultLength, (IntPtr)(&asStringState), _asStringHelper);
 
-        done:
+        Done:
         if (rented is not null) ArrayPool<int>.Shared.Return(rented);
         return result;
     }
@@ -282,8 +284,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
 
                 for (int i = foundItems.Length - 1; i > 0; i--)
                 {
-                    int item = foundItems[i];
-                    string name = names[item];
+                    string name = names[foundItems[i]];
                     name.CopyTo(chars);
                     var nextChars = chars[(name.Length + 1)..];
                     chars[name.Length] = c0;
@@ -311,8 +312,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
 
                 for (int i = foundItems.Length - 1; i > 0; i--)
                 {
-                    int item = foundItems[i];
-                    string name = names[item];
+                    string name = names[foundItems[i]];
                     name.CopyTo(chars);
                     var nextChars = chars[(name.Length + 2)..];
                     chars[name.Length] = ',';
@@ -342,8 +342,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
 
                 for (int i = foundItems.Length - 1; i > 0; i--)
                 {
-                    int item = foundItems[i];
-                    string name = names[item];
+                    string name = names[foundItems[i]];
                     name.CopyTo(chars);
                     var nextChars = chars[(name.Length + 2)..];
                     chars[name.Length] = c0;
@@ -374,8 +373,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
 
                 for (int i = foundItems.Length - 1; i > 0; i--)
                 {
-                    int item = foundItems[i];
-                    string name = names[item];
+                    string name = names[foundItems[i]];
                     name.CopyTo(chars);
                     chars = chars[name.Length..];
                     toStringSeparatorSp.CopyTo(chars);
@@ -427,132 +425,98 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
 
     private bool TryParseImpl(string? s, ReadOnlySpan<char> sp, out T value)
     {
-        // Check if it can be done as a single name or numeric value:
-        // Note: the single name check is opportunistic only for flags enums; this allows us to catch likely cases fast.
-        sp = sp.Trim();
-        if (sp.Length == 0) goto fail;
-        if (!Enum<T>.IsFlagsEnum || (sp.Length <= 12
-#if NET
-            && !sp.Contains(_parseSeparator)))
-#else
-#pragma warning disable SA1009 // Closing parenthesis should be spaced correctly
-            ))
-#endif
+        if (!Enum<T>.IsFlagsEnum)
         {
-#if !NET9_0_OR_GREATER
-            if (s is not null && sp.Length == s.Length)
-            {
-                if (TryGetNamedOrNumericValue(s, out value)) return true;
-            }
+#if NET9_0_OR_GREATER
+            return TryGetNamedOrNumericValueSpan(sp.Trim(), out value);
+#else
+            if (s is not null)
+                return TryGetNamedOrNumericValue(s.Trim(), out value);
+
+            return TryGetNamedOrNumericValueSpan(sp.Trim(), out value);
+#endif
+        }
+
+        value = default;
+        int start = 0;
+
+        while (true)
+        {
+            if (start == sp.Length)
+                return false;
+
+            if (char.IsWhiteSpace(sp[start]))
+                start++;
             else
-#endif
-            {
-                if (TryGetNamedOrNumericValueSpan(sp, out value))
-                {
-                    return true;
-                }
-            }
+                break;
+        }
 
-            if (!Enum<T>.IsFlagsEnum
-#if NET
-                || _parseSeparator != ' ')
+        sp = sp[start..];
+
+        while (true)
+        {
+            int separator = sp.IndexOf(_parseSeparator);
+            int exclusiveEnd = separator < 0 ? sp.Length : separator;
+
+            if (exclusiveEnd is 0)
+                return false;
+
+            while (char.IsWhiteSpace(sp[exclusiveEnd - 1]))
+                exclusiveEnd--;
+
+            var part = sp[..exclusiveEnd];
+
+#if NET9_0_OR_GREATER
+            if (!TryGetNamedOrNumericValueSpan(part, out T partValue))
+                return false;
 #else
-                )
-#pragma warning restore SA1009 // Closing parenthesis should be spaced correctly
+            T partValue;
+
+            if (s is not null && part.Length == s.Length)
+            {
+                if (!TryGetNamedOrNumericValue(s, out partValue))
+                    return false;
+            }
+            else if (!TryGetNamedOrNumericValueSpan(part, out partValue))
+            {
+                return false;
+            }
 #endif
-            {
-                goto fail;
-            }
-        }
-
-        // Check if it's whitespace separators, which needs special handling:
-        value = default;
-        int sepIdx;
-        if (_parseSeparator == ' ') goto handleWhitespaceSeparator;
-
-        // Loop while there are more separators:
-        T partValue;
-        while ((sepIdx = sp.IndexOf(_parseSeparator)) >= 0)
-        {
-            var nextPart = sp[(sepIdx + 1)..];
-            var part = sp[..sepIdx].TrimEnd();
-
-            if (!TryGetNamedOrNumericValueSpan(part, out partValue)) goto fail;
-
-            sp = nextPart.TrimStart();
             value = value.SetFlags(partValue);
-        }
 
-        // Last part:
-        if (!TryGetNamedOrNumericValueSpan(sp, out partValue)) goto fail;
-        value = value.SetFlags(partValue);
-        return true;
+            if (separator < 0)
+                return true;
 
-        // Special handling for whitespace-only separators:
-        handleWhitespaceSeparator:
-        do
-        {
-            // Find next separator:
-            sepIdx = sp.IndexOf(' ');
-            int sepIndexNormalized = sepIdx < 0 ? sp.Length : sepIdx;
+            start = separator + 1;
 
-            // Handle simple cases first:
-            var nextSp = sp[sepIndexNormalized..];
-            var part = sp[..sepIndexNormalized].TrimEnd();
-            if (part.Length == 0) partValue = default;
-            else if (!TryGetNamedOrNumericValueSpan(part, out partValue)) goto tryGetPartSlow;
-
-            // Successfully got a part:
-            sp = nextSp.TrimStart();
-            value = value.SetFlags(partValue);
-            continue;
-
-            // Loop manually checking non-standard whitespace until next space or end:
-            tryGetPartSlow:
-            while (part.Length > 0)
+            while (true)
             {
-                int lastPartLength = part.Length;
-                for (int j = 0; j <= part.Length; j++)
-                {
-                    if (j == part.Length || char.IsWhiteSpace(part[j]))
-                    {
-                        var partPart = part[..j];
-                        if (partPart.Length == 0) partValue = default;
-                        else if (!TryGetNamedOrNumericValueSpan(partPart, out partValue)) goto fail;
-                        part = part[j..].TrimStart();
-                        value = value.SetFlags(partValue);
-                        break;
-                    }
-                }
+                if (start == sp.Length)
+                    return _isSeparatorWhitespace;
 
-                // If no whitespace left, try parsing the remaining part:
-                if (part.Length == lastPartLength)
+                if (char.IsWhiteSpace(sp[start]))
                 {
-                    if (!TryGetNamedOrNumericValueSpan(part, out partValue)) goto fail;
-                    sp = nextSp.TrimStart();
-                    value = value.SetFlags(partValue);
-                    break;
+                    start++;
                 }
-                else if (part.Length == 0)
+                else
                 {
-                    sp = nextSp.TrimStart();
+                    sp = sp[start..];
                     break;
                 }
             }
         }
-        while (sepIdx >= 0);
-
-        // Return success:
-        return true;
-
-        // Fail helper:
-        fail:
-        value = default;
-        return false;
 
         // Parsing helpers:
 
-#if !NET9_0_OR_GREATER
+#if NET9_0_OR_GREATER
+        bool TryGetNamedOrNumericValueSpan(ReadOnlySpan<char> s, out T value)
+        {
+            if (_nameSpanToValueLookup.TryGetValue(s, out value))
+                return true;
+
+            return UnderlyingOperations.TryParse(s, out value);
+        }
+#else
         bool TryGetNamedOrNumericValue(string s, out T value)
         {
             if (_nameToValueLookup.TryGetValue(s, out value))
@@ -560,27 +524,17 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
 
             return UnderlyingOperations.TryParse(s, out value);
         }
-#endif
 
         bool TryGetNamedOrNumericValueSpan(ReadOnlySpan<char> s, out T value)
         {
-#if !NET9_0_OR_GREATER
             string str = s.ToString();
-#endif
 
-#if NET9_0_OR_GREATER
-            if (_nameSpanToValueLookup.TryGetValue(s, out value))
-#else
             if (_nameToValueLookup.TryGetValue(str, out value))
-#endif
                 return true;
 
-#if NET9_0_OR_GREATER
-            return UnderlyingOperations.TryParse(s, out value);
-#else
             return UnderlyingOperations.TryParse(str, out value);
-#endif
         }
+#endif
     }
 
     private static EnumConvertOptions BuildOptions(Action<EnumConvertOptions> buildOptionsAction)

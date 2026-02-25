@@ -10,6 +10,8 @@ internal static class EnumFlagsInfo<[DynamicallyAccessedMembers(DynamicallyAcces
 
     internal static readonly T AllSingleBitFlags = default(T).SetFlags(Enum<T>.Values.Where(v => v.HasSingleBitSet()));
 
+    internal static readonly ImmutableArray<T> SingleBitValues = Enum<T>.Values.Select(v => v.HasSingleBitSet() ? v : default).ToImmutableArray();
+
     internal static readonly bool AreAllFlagsDefinedBySingleBits = EqualityComparer<T>.Default.Equals(AllFlags, AllSingleBitFlags);
 
     internal static readonly ImmutableArray<T> MultiBitValuesDescending = Enum<T>.Values.Reverse().Where(v => !v.HasSingleBitSet()).ToImmutableArray();

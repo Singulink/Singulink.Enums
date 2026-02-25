@@ -375,8 +375,7 @@ public class Program
 
         BenchmarkRunner.Run<Program>(args: [
             "--unrollFactor", "64",
-            // "--anyCategories", "IsDefined",
-            //"SplitFlags",
+            // "--anyCategories", "ToStringMultiple", "ParseMultiple", "ParseMultipleIgnoreCase",
         ]);
 
         Console.ReadKey(true);
