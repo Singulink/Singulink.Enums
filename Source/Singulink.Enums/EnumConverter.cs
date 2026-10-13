@@ -1,8 +1,13 @@
 using System.Buffers;
+using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
+using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -18,21 +23,72 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
 {
     private static EnumConverter<T>? _default;
     private static EnumConverter<T>? _defaultIgnoreCase;
+    private static EnumConverter<T>? _description;
+    private static EnumConverter<T>? _descriptionIgnoreCase;
+    private static EnumConverter<T>? _enumMemberValue;
+    private static EnumConverter<T>? _enumMemberValueIgnoreCase;
 
     /// <summary>
-    /// Gets the default case-sensitive enumeration converter.
+    /// Gets the default case-sensitive enumeration converter that uses the <see cref="EnumFormat.Name"/> format.
     /// </summary>
     public static EnumConverter<T> Default => _default ??= new EnumConverter<T>(new EnumConvertOptions());
 
     /// <summary>
-    /// Gets the default case-insensitive enumeration converter.
+    /// Gets the default case-insensitive enumeration converter that uses the <see cref="EnumFormat.Name"/> format.
     /// </summary>
     public static EnumConverter<T> DefaultIgnoreCase => _defaultIgnoreCase ??= new EnumConverter<T>(new EnumConvertOptions() { IgnoreCase = true });
+
+    /// <summary>
+    /// Gets the shared default enumeration converter that uses the specified format and case-sensitivity. Converters that use the <see
+    /// cref="EnumFormat.DisplayName"/> format for enumerations with localized display names are specific to the current <see
+    /// cref="CultureInfo.CurrentUICulture"/>.
+    /// </summary>
+    /// <param name="format">The source of the enumeration names.</param>
+    /// <param name="ignoreCase"><see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive parsing.</param>
+    public static EnumConverter<T> GetDefault(EnumFormat format, bool ignoreCase = false) => GetDefaultCore(format, null, ignoreCase);
+
+    /// <summary>
+    /// Gets the shared default enumeration converter that uses the specified format, culture and case-sensitivity.
+    /// </summary>
+    /// <param name="format">The source of the enumeration names.</param>
+    /// <param name="culture">The culture used to localize names. Only used by the <see cref="EnumFormat.DisplayName"/> format for enumerations with
+    /// localized display names, and ignored otherwise.</param>
+    /// <param name="ignoreCase"><see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive parsing.</param>
+    public static EnumConverter<T> GetDefault(EnumFormat format, CultureInfo culture, bool ignoreCase = false)
+    {
+        return GetDefaultCore(format, culture, ignoreCase);
+    }
+
+    private static EnumConverter<T> GetDefaultCore(EnumFormat format, CultureInfo? culture, bool ignoreCase)
+    {
+        switch (format)
+        {
+            case EnumFormat.Name:
+                return ignoreCase ? DefaultIgnoreCase : Default;
+            case EnumFormat.DisplayName:
+                return DisplayNameConverters.Get(culture, ignoreCase);
+            case EnumFormat.Description:
+                return ignoreCase ?
+                    (_descriptionIgnoreCase ??= Create(format, ignoreCase)) :
+                    (_description ??= Create(format, ignoreCase));
+            case EnumFormat.EnumMemberValue:
+                return ignoreCase ?
+                    (_enumMemberValueIgnoreCase ??= Create(format, ignoreCase)) :
+                    (_enumMemberValue ??= Create(format, ignoreCase));
+            default:
+                [DoesNotReturn]
+                static void Throw() => throw new ArgumentOutOfRangeException(nameof(format), "Unsupported enumeration format.");
+                Throw();
+                return null;
+        }
+
+        static EnumConverter<T> Create(EnumFormat format, bool ignoreCase) => new(new EnumConvertOptions() { IgnoreCase = ignoreCase }.WithFormat(format));
+    }
 
     private readonly FrozenDictionary<string, T> _nameToValueLookup;
     private readonly FrozenDictionary<T, string> _valueToNameLookup;
     private readonly ImmutableArray<string> _names; // names in the same order as Enum<T>.Values
-    private readonly SpanAction<char, IntPtr> _asStringHelper;
+    private readonly SpanAction<char, IntPtr> _toStringHelper;
 #if NET9_0_OR_GREATER
     private readonly FrozenDictionary<string, T>.AlternateLookup<ReadOnlySpan<char>> _nameSpanToValueLookup;
 #endif
@@ -105,7 +161,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         _nameToValueLookup = nameToValueLookup.ToFrozenDictionary(nameComparer);
         _valueToNameLookup = valueToNameLookup.ToFrozenDictionary();
         _names = ImmutableCollectionsMarshal.AsImmutableArray(names);
-        _asStringHelper = CreateAsStringHelper(_toStringSeparator);
+        _toStringHelper = CreateToStringHelper(_toStringSeparator);
 
 #if NET9_0_OR_GREATER
         _nameSpanToValueLookup = _nameToValueLookup.GetAlternateLookup<ReadOnlySpan<char>>();
@@ -184,12 +240,20 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         return default;
     }
 
-    /// <inheritdoc cref="EnumExtensions.AsString{T}(T)"/>
-    public string AsString(T value) => AsString(value, SplitFlagsOptions.None);
+    /// <summary>
+    /// Gets a string representation of the specified enumeration value.
+    /// </summary>
+    /// <param name="value">The enumeration value.</param>
+    public string ToString(T value) => ToString(value, SplitFlagsOptions.None);
 
-    /// <inheritdoc cref="EnumExtensions.AsString{T}(T, SplitFlagsOptions)"/>
+    /// <summary>
+    /// Gets a string representation of the specified enumeration value using the specified options to customize how flags are split.
+    /// </summary>
+    /// <param name="value">The enumeration value.</param>
+    /// <param name="flagsOptions">Options to customize the behavior of the conversion if the value is a flags enumeration. Ignored if the value is not a flags
+    /// enumeration.</param>
     [SkipLocalsInit]
-    public unsafe string AsString(T value, SplitFlagsOptions flagsOptions)
+    public unsafe string ToString(T value, SplitFlagsOptions flagsOptions)
     {
         flagsOptions.EnsureValid(nameof(flagsOptions));
 
@@ -254,30 +318,40 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         foreach (int item in foundItems)
             resultLength += _names[item].Length;
 
-        var asStringState = new AsStringState(foundItems, _names.AsSpan(), remainderString);
-        result = StringMethods.Create(resultLength, (IntPtr)(&asStringState), _asStringHelper);
+        var toStringState = new ToStringState(foundItems, _names.AsSpan(), remainderString);
+        result = StringMethods.Create(resultLength, (IntPtr)(&toStringState), _toStringHelper);
 
         Done:
         if (rented is not null) ArrayPool<int>.Shared.Return(rented);
         return result;
     }
 
-    private ref struct AsStringState(ReadOnlySpan<int> foundItems, ReadOnlySpan<string> names, string? remainderString)
+    /// <inheritdoc cref="ToString(T)"/>
+    [Obsolete("Use ToString(T) instead.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public string AsString(T value) => ToString(value, SplitFlagsOptions.None);
+
+    /// <inheritdoc cref="ToString(T, SplitFlagsOptions)"/>
+    [Obsolete("Use ToString(T, SplitFlagsOptions) instead.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public string AsString(T value, SplitFlagsOptions flagsOptions) => ToString(value, flagsOptions);
+
+    private ref struct ToStringState(ReadOnlySpan<int> foundItems, ReadOnlySpan<string> names, string? remainderString)
     {
         public ReadOnlySpan<int> FoundItems = foundItems;
         public ReadOnlySpan<string> Names = names;
         public string? RemainderString = remainderString;
     }
 
-    // Helper that creates the callback for creating the string result in AsString.
+    // Helper that creates the callback for creating the string result in ToString.
     // It optimizes for small separator lengths (and also the default value specifically) to ensure best performance for cases most affected.
-    private static unsafe SpanAction<char, IntPtr> CreateAsStringHelper(string toStringSeparator)
+    private static unsafe SpanAction<char, IntPtr> CreateToStringHelper(string toStringSeparator)
     {
         return toStringSeparator switch
         {
             [var c0] => (chars, state) =>
             {
-                var stateValue = *(AsStringState*)state;
+                var stateValue = *(ToStringState*)state;
                 var foundItems = stateValue.FoundItems;
                 string remainderString = stateValue.RemainderString;
                 var names = stateValue.Names;
@@ -305,7 +379,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
             },
             ", " => (chars, state) =>
             {
-                var stateValue = *(AsStringState*)state;
+                var stateValue = *(ToStringState*)state;
                 var foundItems = stateValue.FoundItems;
                 string remainderString = stateValue.RemainderString;
                 var names = stateValue.Names;
@@ -335,7 +409,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
             },
             [var c0, var c1] => (chars, state) =>
             {
-                var stateValue = *(AsStringState*)state;
+                var stateValue = *(ToStringState*)state;
                 var foundItems = stateValue.FoundItems;
                 string remainderString = stateValue.RemainderString;
                 var names = stateValue.Names;
@@ -365,7 +439,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
             },
             _ => (chars, state) =>
             {
-                var stateValue = *(AsStringState*)state;
+                var stateValue = *(ToStringState*)state;
                 var foundItems = stateValue.FoundItems;
                 string remainderString = stateValue.RemainderString;
                 var names = stateValue.Names;
@@ -542,5 +616,87 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
         var options = new EnumConvertOptions();
         buildOptionsAction(options);
         return options;
+    }
+
+    /// <summary>
+    /// Caches the shared converters that use the <see cref="EnumFormat.DisplayName"/> format. Display names are resolved when a converter is created and are
+    /// localized using the current UI culture if any field's <see cref="DisplayAttribute"/> specifies a resource type, so in that case converters are cached
+    /// per culture. Cultures are keyed by name rather than by reference because equal cultures can have distinct instances (e.g. ASP.NET Core request
+    /// localization hands out read-only clones), and localized resources are only ever resolved by name.
+    /// </summary>
+    private static class DisplayNameConverters
+    {
+        private static readonly bool _isCultureSensitive =
+            Enum<T>.GetFields().Any(f => f.GetCustomAttribute<DisplayAttribute>()?.ResourceType is not null);
+
+        private static ConverterPair? _invariantPair;
+        private static ConverterPair? _lastPair;
+        private static ConcurrentDictionary<string, ConverterPair>? _pairsByCultureName;
+
+        public static EnumConverter<T> Get(CultureInfo? culture, bool ignoreCase)
+        {
+            if (!_isCultureSensitive)
+                return (_invariantPair ??= new ConverterPair(null)).Get(ignoreCase);
+
+            culture ??= CultureInfo.CurrentUICulture;
+            var pair = _lastPair;
+
+            if (pair is null || pair.Culture!.Name != culture.Name)
+            {
+                var pairs = _pairsByCultureName ?? InitPairs();
+
+                if (!pairs.TryGetValue(culture.Name, out pair))
+                    pair = pairs.GetOrAdd(culture.Name, new ConverterPair(culture));
+
+                _lastPair = pair;
+            }
+
+            return pair.Get(ignoreCase);
+        }
+
+        private static ConcurrentDictionary<string, ConverterPair> InitPairs()
+        {
+            Interlocked.CompareExchange(ref _pairsByCultureName, new ConcurrentDictionary<string, ConverterPair>(), null);
+            return _pairsByCultureName;
+        }
+
+        private sealed class ConverterPair(CultureInfo? culture)
+        {
+            private EnumConverter<T>? _converter;
+            private EnumConverter<T>? _converterIgnoreCase;
+
+            public CultureInfo? Culture { get; } = culture;
+
+            public EnumConverter<T> Get(bool ignoreCase)
+            {
+                return ignoreCase ?
+                    (_converterIgnoreCase ??= Create(ignoreCase)) :
+                    (_converter ??= Create(ignoreCase));
+            }
+
+            private EnumConverter<T> Create(bool ignoreCase)
+            {
+                var options = new EnumConvertOptions() { IgnoreCase = ignoreCase }.WithFormat(EnumFormat.DisplayName);
+
+                // DisplayAttribute resolves localized names using the current UI culture and has no way to specify a different culture, so the current UI
+                // culture is temporarily switched if a different culture was requested.
+
+                var currentCulture = CultureInfo.CurrentUICulture;
+
+                if (Culture is null || Culture.Name == currentCulture.Name)
+                    return new EnumConverter<T>(options);
+
+                CultureInfo.CurrentUICulture = Culture;
+
+                try
+                {
+                    return new EnumConverter<T>(options);
+                }
+                finally
+                {
+                    CultureInfo.CurrentUICulture = currentCulture;
+                }
+            }
+        }
     }
 }

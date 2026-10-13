@@ -49,6 +49,13 @@ string backspaceName = ConsoleKey.Backspace.GetName();
 // Parse using the default converter
 ConsoleKey backspace = Enum<ConsoleKey>.Parse("Backspace");
 
+// Convert to/from strings using names from the [Display], [Description] or [EnumMember] attributes
+string displayName = YourEnum.SomeValue.ToString(EnumFormat.DisplayName);
+YourEnum yourValue = Enum<YourEnum>.Parse(displayName, EnumFormat.DisplayName);
+
+// Get an attribute applied to an enum value, e.g. for tooltip text
+string? tooltip = Enum<YourEnum>.GetAttribute<DisplayAttribute>(yourValue)?.GetDescription();
+
 // Bitwise flag operations
 var value = AttributeTargets.Assembly;
 value = value.SetFlags(AttributeTargets.Class, AttributeTargets.Method); // set additional flags
@@ -63,11 +70,14 @@ var converter = new EnumConverter<AttributeTargets>(opt => {
 });
 
 // Convert enum value to/from string using the customized converter
-string enumString = converter.AsString(value) // "Assembly | Class | Method"
+string enumString = converter.ToString(value) // "Assembly | Class | Method"
 value = converter.Parse(enumString.ToLowerInvariant()); // Assembly, Class and Method flags set
 
-// Create an enum converter that uses the [Display] attribute to get the names
-var displayNameConverter = new EnumConverter<YourEnum>(opt => opt.WithDisplayNameGetter());
+// Create a customized enum converter that uses the [Display] attribute to get the names
+var displayNameConverter = new EnumConverter<YourEnum>(opt => {
+    opt.Separator = " | ";
+    opt.WithFormat(EnumFormat.DisplayName);
+});
 
 public void Method(AttributeTargets targets)
 {
@@ -131,13 +141,29 @@ The following is a comparison between Singulink Enums, Enums.Net (v5.0) and oper
 | SplitFlags_Singulink*             |  20.5384 ns | 0.0313 ns | 0.0244 ns |
 | SplitFlags_EnumsNet               |  76.3367 ns | 0.8440 ns | 0.7047 ns |
 |                                   |             |           |           |
-| AsStringMultiple_Singulink*       |  55.9299 ns | 0.2222 ns | 0.1970 ns |
-| AsStringMultiple_EnumsNet         | 162.1769 ns | 0.7477 ns | 0.6244 ns |
-| AsStringMultiple_System           |  45.5259 ns | 0.3624 ns | 0.3212 ns |
+| ToStringMultiple_Singulink*       |  55.9299 ns | 0.2222 ns | 0.1970 ns |
+| ToStringMultiple_EnumsNet         | 162.1769 ns | 0.7477 ns | 0.6244 ns |
+| ToStringMultiple_System           |  45.5259 ns | 0.3624 ns | 0.3212 ns |
 |                                   |             |           |           |
-| AsStringSingle_Singulink          |   3.1599 ns | 0.0192 ns | 0.0170 ns |
-| AsStringSingle_EnumsNet           |   2.3536 ns | 0.0131 ns | 0.0116 ns |
-| AsStringSingle_System             |   5.7745 ns | 0.0303 ns | 0.0253 ns |
+| ToStringSingle_Singulink          |   3.1599 ns | 0.0192 ns | 0.0170 ns |
+| ToStringSingle_EnumsNet           |   2.3536 ns | 0.0131 ns | 0.0116 ns |
+| ToStringSingle_System             |   5.7745 ns | 0.0303 ns | 0.0253 ns |
 ```
 
 \* Split flags and flags converted to strings are returned in ascending order (based on the highest bits set) with any remainder added to the end. This behavior differs from Enums.Net and system methods as this is usually what developers want. You also have the option to return all matching flags (v.s. just the minimal set of flags that can be combined to form the original value) or splitting only using single-bit values. See [`SplitFlagsOptions`](https://www.singulink.com/Docs/Singulink.Enums/api/Singulink.Enums.SplitFlagsOptions.html).
+
+## Upgrading to v3.0
+
+The `AsString` methods have been renamed to `ToString` so that the library's string conversion methods have the same name as the built-in method they replace. The old methods still work in v3.x but are marked obsolete and hidden, and they will be removed in v4.0.
+
+| v2.x | v3.0 |
+|---|---|
+| `value.AsString()` | `value.ToString(EnumFormat.Name)` |
+| `value.AsString(flagsOptions)` | `value.ToString(flagsOptions)` |
+| `converter.AsString(value)` | `converter.ToString(value)` |
+| `converter.AsString(value, flagsOptions)` | `converter.ToString(value, flagsOptions)` |
+| `options.WithDisplayNameGetter()` | `options.WithFormat(EnumFormat.DisplayName)` |
+
+Calling `ToString()` with no parameters on an enum value always calls the built-in method, not the library's extension method. The library's conversion must be selected by passing a format or split options. The only difference in output between the built-in method and `ToString(EnumFormat.Name)` is for flags values that contain undefined flags: the built-in method returns the whole value as a number, whereas this library appends the undefined remainder after the defined flags.
+
+v3.0 also adds `EnumFormat` for converting to/from strings using names from the `[Display]`, `[Description]` or `[EnumMember]` attributes, and `Enum<T>.GetAttribute<TAttribute>()` for getting attributes applied to enum values. See the usage section above for examples.

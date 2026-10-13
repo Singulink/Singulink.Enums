@@ -1,4 +1,6 @@
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using static System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes;
 
@@ -10,12 +12,18 @@ namespace Singulink.Enums;
 public static partial class EnumExtensions
 {
     /// <summary>
-    /// Gets a string representation of the specified enumeration value.
+    /// Gets a string representation of the specified enumeration value using the specified format.
     /// </summary>
     /// <param name="value">The enumeration value.</param>
-    public static string AsString<T>(this T value) where T : unmanaged, Enum
+    /// <param name="format">The source of the enumeration names.</param>
+    /// <remarks>
+    /// Calling <c>ToString()</c> without any parameters on an enumeration value always calls the built-in <see cref="Enum.ToString()"/> method. The equivalent
+    /// method in this library is <c>ToString(EnumFormat.Name)</c>, which differs only in how flags enumeration values with undefined flags are formatted: the
+    /// built-in method returns the whole value as a number, whereas this library appends the undefined remainder after the defined flags.
+    /// </remarks>
+    public static string ToString<[DynamicallyAccessedMembers(PublicFields)] T>(this T value, EnumFormat format) where T : unmanaged, Enum
     {
-        return EnumConverter<T>.Default.AsString(value);
+        return EnumConverter<T>.GetDefault(format).ToString(value);
     }
 
     /// <summary>
@@ -24,9 +32,60 @@ public static partial class EnumExtensions
     /// <param name="value">The enumeration value.</param>
     /// <param name="flagsOptions">Options to customize the behavior of the conversion if the value is a flags enumeration. Ignored if the value is not a flags
     /// enumeration.</param>
-    public static string AsString<T>(this T value, SplitFlagsOptions flagsOptions) where T : unmanaged, Enum
+    /// <inheritdoc cref="ToString{T}(T, EnumFormat)" path="/remarks"/>
+    public static string ToString<[DynamicallyAccessedMembers(PublicFields)] T>(this T value, SplitFlagsOptions flagsOptions) where T : unmanaged, Enum
     {
-        return EnumConverter<T>.Default.AsString(value, flagsOptions);
+        return EnumConverter<T>.Default.ToString(value, flagsOptions);
+    }
+
+    /// <summary>
+    /// Gets a string representation of the specified enumeration value using the specified format and options to customize how flags are split.
+    /// </summary>
+    /// <param name="value">The enumeration value.</param>
+    /// <param name="format">The source of the enumeration names.</param>
+    /// <param name="flagsOptions">Options to customize the behavior of the conversion if the value is a flags enumeration. Ignored if the value is not a flags
+    /// enumeration.</param>
+    /// <inheritdoc cref="ToString{T}(T, EnumFormat)" path="/remarks"/>
+    public static string ToString<[DynamicallyAccessedMembers(PublicFields)] T>(this T value, EnumFormat format, SplitFlagsOptions flagsOptions)
+        where T : unmanaged, Enum
+    {
+        return EnumConverter<T>.GetDefault(format).ToString(value, flagsOptions);
+    }
+
+    /// <summary>
+    /// Gets a string representation of the specified enumeration value using the specified format, culture and options to customize how flags are split.
+    /// </summary>
+    /// <param name="value">The enumeration value.</param>
+    /// <param name="format">The source of the enumeration names.</param>
+    /// <param name="culture">The culture used to localize names. Only used by the <see cref="EnumFormat.DisplayName"/> format for enumerations with
+    /// localized display names, and ignored otherwise.</param>
+    /// <param name="flagsOptions">Options to customize the behavior of the conversion if the value is a flags enumeration. Ignored if the value is not a flags
+    /// enumeration.</param>
+    /// <inheritdoc cref="ToString{T}(T, EnumFormat)" path="/remarks"/>
+    public static string ToString<[DynamicallyAccessedMembers(PublicFields)] T>(
+        this T value,
+        EnumFormat format,
+        CultureInfo culture,
+        SplitFlagsOptions flagsOptions = SplitFlagsOptions.None)
+        where T : unmanaged, Enum
+    {
+        return EnumConverter<T>.GetDefault(format, culture).ToString(value, flagsOptions);
+    }
+
+    /// <inheritdoc cref="ToString{T}(T, EnumFormat)"/>
+    [Obsolete("Use ToString(EnumFormat.Name) instead.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static string AsString<[DynamicallyAccessedMembers(PublicFields)] T>(this T value) where T : unmanaged, Enum
+    {
+        return EnumConverter<T>.Default.ToString(value);
+    }
+
+    /// <inheritdoc cref="ToString{T}(T, SplitFlagsOptions)"/>
+    [Obsolete("Use ToString(SplitFlagsOptions) instead.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static string AsString<[DynamicallyAccessedMembers(PublicFields)] T>(this T value, SplitFlagsOptions flagsOptions) where T : unmanaged, Enum
+    {
+        return EnumConverter<T>.Default.ToString(value, flagsOptions);
     }
 
     /// <summary>
@@ -180,6 +239,17 @@ public static partial class EnumExtensions
     }
 
     /// <summary>
+    /// Gets the first enumeration name with the given value using the specified format.
+    /// </summary>
+    /// <param name="value">The enumeration value.</param>
+    /// <param name="format">The source of the enumeration names.</param>
+    /// <exception cref="MissingMemberException">An enumeration with the specified value was not found.</exception>
+    public static string GetName<[DynamicallyAccessedMembers(PublicFields)] T>(this T value, EnumFormat format) where T : unmanaged, Enum
+    {
+        return EnumConverter<T>.GetDefault(format).GetName(value);
+    }
+
+    /// <summary>
     /// Gets the first enumeration name with the given value.
     /// </summary>
     /// <param name="value">The enumeration value.</param>
@@ -198,6 +268,19 @@ public static partial class EnumExtensions
 
         name = Enum<T>.Names[index];
         return true;
+    }
+
+    /// <summary>
+    /// Gets the first enumeration name with the given value using the specified format.
+    /// </summary>
+    /// <param name="value">The enumeration value.</param>
+    /// <param name="format">The source of the enumeration names.</param>
+    /// <param name="name">Contains the matched name when the method returns if the name was found, otherwise <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if the name was found, otherwise <see langword="false"/>.</returns>
+    public static bool TryGetName<[DynamicallyAccessedMembers(PublicFields)] T>(this T value, EnumFormat format, [NotNullWhen(true)] out string? name)
+        where T : unmanaged, Enum
+    {
+        return EnumConverter<T>.GetDefault(format).TryGetName(value, out name);
     }
 
     /// <summary>

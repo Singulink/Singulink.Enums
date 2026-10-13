@@ -332,37 +332,37 @@ public class Program
     }
 
     [BenchmarkCategory("ToStringSingle"), Benchmark(Baseline = true)]
-    public string AsStringSingle_Singulink()
+    public string ToStringSingle_Singulink()
     {
-        return Singulink.Enums.EnumExtensions.AsString(_singleAllFlagsValue);
+        return Singulink.Enums.EnumExtensions.ToString(_singleAllFlagsValue, Singulink.Enums.EnumFormat.Name);
     }
 
     [BenchmarkCategory("ToStringSingle"), Benchmark]
-    public string AsStringSingle_EnumsNet()
+    public string ToStringSingle_EnumsNet()
     {
         return EnumsNET.Enums.AsString(_singleAllFlagsValue);
     }
 
     [BenchmarkCategory("ToStringSingle"), Benchmark]
-    public string AsStringSingle_System()
+    public string ToStringSingle_System()
     {
         return _singleAllFlagsValue.ToString();
     }
 
     [BenchmarkCategory("ToStringMultiple"), Benchmark(Baseline = true)]
-    public string AsStringMultiple_Singulink()
+    public string ToStringMultiple_Singulink()
     {
-        return Singulink.Enums.EnumExtensions.AsString(_manySingleFlags);
+        return Singulink.Enums.EnumExtensions.ToString(_manySingleFlags, Singulink.Enums.EnumFormat.Name);
     }
 
     [BenchmarkCategory("ToStringMultiple"), Benchmark]
-    public string AsStringMultiple_EnumsNet()
+    public string ToStringMultiple_EnumsNet()
     {
         return EnumsNET.Enums.AsString(_manySingleFlags);
     }
 
     [BenchmarkCategory("ToStringMultiple"), Benchmark]
-    public string AsStringMultiple_System()
+    public string ToStringMultiple_System()
     {
         return _manySingleFlags.ToString();
     }

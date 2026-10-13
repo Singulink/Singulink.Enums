@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -64,6 +65,41 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
     }
 
     /// <summary>
+    /// Gets the enumeration value with the given name using the specified format.
+    /// </summary>
+    /// <param name="name">The name of the enumeration value.</param>
+    /// <param name="format">The source of the enumeration names.</param>
+    /// <param name="ignoreCase"><see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive matching.</param>
+    /// <exception cref="MissingMemberException">An enumeration with the specified name was not found.</exception>
+    public static T GetValue(string name, EnumFormat format, bool ignoreCase = false) => EnumConverter<T>.GetDefault(format, ignoreCase).GetValue(name);
+
+    /// <inheritdoc cref="GetValue(string, EnumFormat, bool)" />
+    public static T GetValue(ReadOnlySpan<char> name, EnumFormat format, bool ignoreCase = false)
+    {
+        return EnumConverter<T>.GetDefault(format, ignoreCase).GetValue(name);
+    }
+
+    /// <summary>
+    /// Gets the enumeration value with the given name using the specified format and culture.
+    /// </summary>
+    /// <param name="name">The name of the enumeration value.</param>
+    /// <param name="format">The source of the enumeration names.</param>
+    /// <param name="culture">The culture used to localize names. Only used by the <see cref="EnumFormat.DisplayName"/> format for enumerations with
+    /// localized display names, and ignored otherwise.</param>
+    /// <param name="ignoreCase"><see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive matching.</param>
+    /// <exception cref="MissingMemberException">An enumeration with the specified name was not found.</exception>
+    public static T GetValue(string name, EnumFormat format, CultureInfo culture, bool ignoreCase = false)
+    {
+        return EnumConverter<T>.GetDefault(format, culture, ignoreCase).GetValue(name);
+    }
+
+    /// <inheritdoc cref="GetValue(string, EnumFormat, CultureInfo, bool)" />
+    public static T GetValue(ReadOnlySpan<char> name, EnumFormat format, CultureInfo culture, bool ignoreCase = false)
+    {
+        return EnumConverter<T>.GetDefault(format, culture, ignoreCase).GetValue(name);
+    }
+
+    /// <summary>
     /// Gets the enumeration value parsed from the specified string.
     /// </summary>
     /// <param name="s">The string to be parsed.</param>
@@ -78,6 +114,38 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
     public static T Parse(ReadOnlySpan<char> s, bool ignoreCase = false)
     {
         return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.Parse(s) : EnumConverter<T>.Default.Parse(s);
+    }
+
+    /// <summary>
+    /// Gets the enumeration value parsed from the specified string using the specified format.
+    /// </summary>
+    /// <param name="s">The string to be parsed.</param>
+    /// <param name="format">The source of the enumeration names.</param>
+    /// <param name="ignoreCase"><see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive parsing.</param>
+    /// <exception cref="FormatException">Input string was not in a correct format.</exception>
+    public static T Parse(string s, EnumFormat format, bool ignoreCase = false) => EnumConverter<T>.GetDefault(format, ignoreCase).Parse(s);
+
+    /// <inheritdoc cref="Parse(string, EnumFormat, bool)"/>
+    public static T Parse(ReadOnlySpan<char> s, EnumFormat format, bool ignoreCase = false) => EnumConverter<T>.GetDefault(format, ignoreCase).Parse(s);
+
+    /// <summary>
+    /// Gets the enumeration value parsed from the specified string using the specified format and culture.
+    /// </summary>
+    /// <param name="s">The string to be parsed.</param>
+    /// <param name="format">The source of the enumeration names.</param>
+    /// <param name="culture">The culture used to localize names. Only used by the <see cref="EnumFormat.DisplayName"/> format for enumerations with
+    /// localized display names, and ignored otherwise.</param>
+    /// <param name="ignoreCase"><see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive parsing.</param>
+    /// <exception cref="FormatException">Input string was not in a correct format.</exception>
+    public static T Parse(string s, EnumFormat format, CultureInfo culture, bool ignoreCase = false)
+    {
+        return EnumConverter<T>.GetDefault(format, culture, ignoreCase).Parse(s);
+    }
+
+    /// <inheritdoc cref="Parse(string, EnumFormat, CultureInfo, bool)"/>
+    public static T Parse(ReadOnlySpan<char> s, EnumFormat format, CultureInfo culture, bool ignoreCase = false)
+    {
+        return EnumConverter<T>.GetDefault(format, culture, ignoreCase).Parse(s);
     }
 
     /// <inheritdoc cref="TryGetValue(string, bool, out T)"/>
@@ -105,6 +173,57 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
         return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.TryGetValue(name, out value) : EnumConverter<T>.Default.TryGetValue(name, out value);
     }
 
+    /// <inheritdoc cref="TryGetValue(string, EnumFormat, bool, out T)"/>
+    public static bool TryGetValue(string name, EnumFormat format, out T value) => EnumConverter<T>.GetDefault(format).TryGetValue(name, out value);
+
+    /// <inheritdoc cref="TryGetValue(string, EnumFormat, bool, out T)"/>
+    public static bool TryGetValue(ReadOnlySpan<char> name, EnumFormat format, out T value)
+    {
+        return EnumConverter<T>.GetDefault(format).TryGetValue(name, out value);
+    }
+
+    /// <summary>
+    /// Gets the enumeration value with the given name using the specified format.
+    /// </summary>
+    /// <param name="name">The name of the enumeration value.</param>
+    /// <param name="format">The source of the enumeration names.</param>
+    /// <param name="ignoreCase"><see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive matching.</param>
+    /// <param name="value">Contains the matched value when the method returns if the value was found, otherwise the default value of <typeparamref
+    /// name="T"/>.</param>
+    /// <returns><see langword="true"/> if the value was found, otherwise <see langword="false"/>.</returns>
+    public static bool TryGetValue(string name, EnumFormat format, bool ignoreCase, out T value)
+    {
+        return EnumConverter<T>.GetDefault(format, ignoreCase).TryGetValue(name, out value);
+    }
+
+    /// <inheritdoc cref="TryGetValue(string, EnumFormat, bool, out T)"/>
+    public static bool TryGetValue(ReadOnlySpan<char> name, EnumFormat format, bool ignoreCase, out T value)
+    {
+        return EnumConverter<T>.GetDefault(format, ignoreCase).TryGetValue(name, out value);
+    }
+
+    /// <summary>
+    /// Gets the enumeration value with the given name using the specified format and culture.
+    /// </summary>
+    /// <param name="name">The name of the enumeration value.</param>
+    /// <param name="format">The source of the enumeration names.</param>
+    /// <param name="culture">The culture used to localize names. Only used by the <see cref="EnumFormat.DisplayName"/> format for enumerations with
+    /// localized display names, and ignored otherwise.</param>
+    /// <param name="ignoreCase"><see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive matching.</param>
+    /// <param name="value">Contains the matched value when the method returns if the value was found, otherwise the default value of <typeparamref
+    /// name="T"/>.</param>
+    /// <returns><see langword="true"/> if the value was found, otherwise <see langword="false"/>.</returns>
+    public static bool TryGetValue(string name, EnumFormat format, CultureInfo culture, bool ignoreCase, out T value)
+    {
+        return EnumConverter<T>.GetDefault(format, culture, ignoreCase).TryGetValue(name, out value);
+    }
+
+    /// <inheritdoc cref="TryGetValue(string, EnumFormat, CultureInfo, bool, out T)"/>
+    public static bool TryGetValue(ReadOnlySpan<char> name, EnumFormat format, CultureInfo culture, bool ignoreCase, out T value)
+    {
+        return EnumConverter<T>.GetDefault(format, culture, ignoreCase).TryGetValue(name, out value);
+    }
+
     /// <inheritdoc cref="TryParse(string, bool, out T)"/>
     public static bool TryParse(string s, out T value) => EnumConverter<T>.Default.TryParse(s, out value);
 
@@ -128,6 +247,75 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
     public static bool TryParse(ReadOnlySpan<char> s, bool ignoreCase, out T value)
     {
         return ignoreCase ? EnumConverter<T>.DefaultIgnoreCase.TryParse(s, out value) : EnumConverter<T>.Default.TryParse(s, out value);
+    }
+
+    /// <inheritdoc cref="TryParse(string, EnumFormat, bool, out T)"/>
+    public static bool TryParse(string s, EnumFormat format, out T value) => EnumConverter<T>.GetDefault(format).TryParse(s, out value);
+
+    /// <inheritdoc cref="TryParse(string, EnumFormat, bool, out T)"/>
+    public static bool TryParse(ReadOnlySpan<char> s, EnumFormat format, out T value) => EnumConverter<T>.GetDefault(format).TryParse(s, out value);
+
+    /// <summary>
+    /// Gets the enumeration value parsed from the specified string using the specified format.
+    /// </summary>
+    /// <param name="s">The string to be parsed.</param>
+    /// <param name="format">The source of the enumeration names.</param>
+    /// <param name="ignoreCase"><see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive parsing.</param>
+    /// <param name="value">Contains the resulting value when the method returns if parsing was successful, otherwise the default value of <typeparamref
+    /// name="T"/>.</param>
+    /// <returns><see langword="true"/> if parsing was successful, otherwise <see langword="false"/>.</returns>
+    public static bool TryParse(string s, EnumFormat format, bool ignoreCase, out T value)
+    {
+        return EnumConverter<T>.GetDefault(format, ignoreCase).TryParse(s, out value);
+    }
+
+    /// <inheritdoc cref="TryParse(string, EnumFormat, bool, out T)"/>
+    public static bool TryParse(ReadOnlySpan<char> s, EnumFormat format, bool ignoreCase, out T value)
+    {
+        return EnumConverter<T>.GetDefault(format, ignoreCase).TryParse(s, out value);
+    }
+
+    /// <summary>
+    /// Gets the enumeration value parsed from the specified string using the specified format and culture.
+    /// </summary>
+    /// <param name="s">The string to be parsed.</param>
+    /// <param name="format">The source of the enumeration names.</param>
+    /// <param name="culture">The culture used to localize names. Only used by the <see cref="EnumFormat.DisplayName"/> format for enumerations with
+    /// localized display names, and ignored otherwise.</param>
+    /// <param name="ignoreCase"><see langword="true"/> for case-insensitive or <see langword="false"/> for case-sensitive parsing.</param>
+    /// <param name="value">Contains the resulting value when the method returns if parsing was successful, otherwise the default value of <typeparamref
+    /// name="T"/>.</param>
+    /// <returns><see langword="true"/> if parsing was successful, otherwise <see langword="false"/>.</returns>
+    public static bool TryParse(string s, EnumFormat format, CultureInfo culture, bool ignoreCase, out T value)
+    {
+        return EnumConverter<T>.GetDefault(format, culture, ignoreCase).TryParse(s, out value);
+    }
+
+    /// <inheritdoc cref="TryParse(string, EnumFormat, CultureInfo, bool, out T)"/>
+    public static bool TryParse(ReadOnlySpan<char> s, EnumFormat format, CultureInfo culture, bool ignoreCase, out T value)
+    {
+        return EnumConverter<T>.GetDefault(format, culture, ignoreCase).TryParse(s, out value);
+    }
+
+    /// <summary>
+    /// Gets the attribute of the specified type applied to the field that defines the specified enumeration value, or <see langword="null"/> if the value is
+    /// not defined or the field does not have the attribute.
+    /// </summary>
+    /// <typeparam name="TAttribute">The type of attribute to get.</typeparam>
+    /// <param name="value">The enumeration value.</param>
+    /// <remarks>
+    /// <para>
+    /// If multiple fields define the same value then the first field's attribute is returned. For flags enumerations, the value must exactly match a defined
+    /// value, so <see langword="null"/> is returned for combinations of flags that are not themselves defined.</para>
+    /// <para>
+    /// Attributes are cached per enumeration and attribute type, so this method is suitable for use in performance-sensitive code. The attribute instance
+    /// itself is returned rather than any value derived from it, so values that are resolved at access time, such as localized <see
+    /// cref="System.ComponentModel.DataAnnotations.DisplayAttribute"/> strings, are resolved when they are accessed by the caller.</para>
+    /// </remarks>
+    public static TAttribute? GetAttribute<TAttribute>(T value) where TAttribute : Attribute
+    {
+        int index = GetFirstValueIndex(value);
+        return index < 0 ? null : AttributeInfo<TAttribute>.Attributes[index];
     }
 
     internal static bool ContainsValue(T value)
@@ -223,6 +411,18 @@ public static class Enum<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTy
         }
 
         return (values, names, firstItemWithValueLookup);
+    }
+
+    private static class AttributeInfo<TAttribute> where TAttribute : Attribute
+    {
+        // Attributes in the same order as Values/Names.
+        public static readonly ImmutableArray<TAttribute?> Attributes = InitAttributes();
+
+        private static ImmutableArray<TAttribute?> InitAttributes()
+        {
+            var fieldsByName = GetFields().ToDictionary(f => f.Name);
+            return Names.Select(n => fieldsByName[n].GetCustomAttributes<TAttribute>(false).FirstOrDefault()).ToImmutableArray();
+        }
     }
 
     private unsafe readonly struct UnsignedComparable(T value) : IComparable<UnsignedComparable>

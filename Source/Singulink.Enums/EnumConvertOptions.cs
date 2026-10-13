@@ -1,5 +1,7 @@
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
+using System.Runtime.Serialization;
 
 namespace Singulink.Enums;
 
@@ -8,7 +10,10 @@ namespace Singulink.Enums;
 /// </summary>
 public class EnumConvertOptions
 {
+    private static readonly Func<FieldInfo, string> _nameGetter = f => f.Name;
     private static readonly Func<FieldInfo, string> _displayNameGetter = f => f.GetCustomAttribute<DisplayAttribute>()?.GetName() ?? f.Name;
+    private static readonly Func<FieldInfo, string> _descriptionGetter = f => f.GetCustomAttribute<DescriptionAttribute>()?.Description ?? f.Name;
+    private static readonly Func<FieldInfo, string> _enumMemberValueGetter = f => f.GetCustomAttribute<EnumMemberAttribute>()?.Value ?? f.Name;
 
     private string _separator = ", ";
     internal char _separatorChar = ',';
@@ -48,24 +53,48 @@ public class EnumConvertOptions
     /// Gets or sets a function that customizes the names of enumeration values. Defaults to the field name of the enumeration value.
     /// </summary>
     /// <remarks>
-    /// The <see cref="WithDisplayNameGetter"/> method can be used to set this property to a function that gets the names of enumeration values from the <see
-    /// cref="DisplayAttribute"/> on each value's field.
+    /// The <see cref="WithFormat(EnumFormat)"/> method can be used to set this property to a function that gets the names of enumeration values from one of
+    /// the standard sources described by <see cref="EnumFormat"/>.
     /// </remarks>
-    public Func<FieldInfo, string> NameGetter { get; set; } = f => f.Name;
+    public Func<FieldInfo, string> NameGetter { get; set; } = _nameGetter;
+
+    /// <summary>
+    /// Sets the <see cref="NameGetter"/> property on this instance to a function that gets the names of enumeration values from the source described by the
+    /// specified format.
+    /// </summary>
+    /// <param name="format">The source of the enumeration names.</param>
+    /// <returns>The modified options instance (same instance is returned - a new instance is not created).</returns>
+    /// <remarks>
+    /// Names obtained from the <see cref="EnumFormat.DisplayName"/> format are resolved when the converter is created, so a converter created with this format
+    /// for an enumeration that uses localized display names is specific to the <see cref="System.Globalization.CultureInfo.CurrentUICulture"/> that was
+    /// current when it was created. Use <see cref="EnumConverter{T}.GetDefault(EnumFormat, System.Globalization.CultureInfo, bool)"/> to get shared
+    /// converters for specific cultures.
+    /// </remarks>
+    public EnumConvertOptions WithFormat(EnumFormat format)
+    {
+        NameGetter = GetNameGetter(format);
+        return this;
+    }
 
     /// <summary>
     /// Sets the <see cref="NameGetter"/> property on this instance to a function that gets the names of enumeration values from the <see
     /// cref="DisplayAttribute"/>'s <see cref="DisplayAttribute.Name"/> property on each enumeration value's field, if present.
     /// </summary>
     /// <returns>The modified options instance (same instance is returned - a new instance is not created).</returns>
-    /// <remarks>
-    /// If an enumeration value's field does not have a <see cref="DisplayAttribute"/> or the attribute's <see cref="DisplayAttribute.Name"/> property is not
-    /// set, the field name of the enumeration value is used instead.
-    /// </remarks>
-    public EnumConvertOptions WithDisplayNameGetter()
+    [Obsolete("Use WithFormat(EnumFormat.DisplayName) instead.")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public EnumConvertOptions WithDisplayNameGetter() => WithFormat(EnumFormat.DisplayName);
+
+    internal static Func<FieldInfo, string> GetNameGetter(EnumFormat format)
     {
-        NameGetter = _displayNameGetter;
-        return this;
+        return format switch
+        {
+            EnumFormat.Name => _nameGetter,
+            EnumFormat.DisplayName => _displayNameGetter,
+            EnumFormat.Description => _descriptionGetter,
+            EnumFormat.EnumMemberValue => _enumMemberValueGetter,
+            _ => throw new ArgumentOutOfRangeException(nameof(format), "Unsupported enumeration format."),
+        };
     }
 
     private static char GetSeparatorChar(string value)

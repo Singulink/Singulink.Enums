@@ -11,9 +11,9 @@ public class EnumConvertTests
     {
         var converter = EnumConverter<NormalEnum>.Default;
 
-        converter.AsString(NormalEnum.None).ShouldBe("None");
-        converter.AsString(NormalEnum.B).ShouldBe("B");
-        converter.AsString(NormalEnum.D).ShouldBe("D");
+        converter.ToString(NormalEnum.None).ShouldBe("None");
+        converter.ToString(NormalEnum.B).ShouldBe("B");
+        converter.ToString(NormalEnum.D).ShouldBe("D");
     }
 
     [TestMethod]
@@ -21,24 +21,24 @@ public class EnumConvertTests
     {
         var converter = EnumConverter<NormalEnum>.Default;
 
-        converter.AsString((NormalEnum)3).ShouldBe("3");
-        converter.AsString((NormalEnum)12).ShouldBe("12");
+        converter.ToString((NormalEnum)3).ShouldBe("3");
+        converter.ToString((NormalEnum)12).ShouldBe("12");
     }
 
     [TestMethod]
     public void ToCustomNameString()
     {
-        var converter = new EnumConverter<NormalEnum>(opt => opt.WithDisplayNameGetter());
+        var converter = new EnumConverter<NormalEnum>(opt => opt.WithFormat(EnumFormat.DisplayName));
 
-        converter.AsString(NormalEnum.None).ShouldBe("None (Display)");
-        converter.AsString(NormalEnum.C).ShouldBe("C (Display)");
+        converter.ToString(NormalEnum.None).ShouldBe("None (Display)");
+        converter.ToString(NormalEnum.C).ShouldBe("C (Display)");
     }
 
     [TestMethod]
     public void ToDefaultString()
     {
-        default(NormalEnum).AsString().ShouldBe("None");
-        default(NoDefaultEnum).AsString().ShouldBe("0");
+        default(NormalEnum).ToString(EnumFormat.Name).ShouldBe("None");
+        default(NoDefaultEnum).ToString(EnumFormat.Name).ShouldBe("0");
     }
 
     [TestMethod]
@@ -83,15 +83,15 @@ public class EnumConvertTests
         var converterA = EnumConverter<WithRepeatsA>.Default;
         var converterB = EnumConverter<WithRepeatsB>.Default;
 
-        converterA.AsString(WithRepeatsA.A).ShouldBe("A");
-        converterA.AsString(WithRepeatsA.E).ShouldBe("E");
-        converterA.AsString(WithRepeatsA.K).ShouldBe("K");
-        converterA.AsString(WithRepeatsA.T).ShouldBe("T");
-        converterA.AsString(WithRepeatsA.Y).ShouldBe("Y");
+        converterA.ToString(WithRepeatsA.A).ShouldBe("A");
+        converterA.ToString(WithRepeatsA.E).ShouldBe("E");
+        converterA.ToString(WithRepeatsA.K).ShouldBe("K");
+        converterA.ToString(WithRepeatsA.T).ShouldBe("T");
+        converterA.ToString(WithRepeatsA.Y).ShouldBe("Y");
 
-        converterB.AsString(WithRepeatsB.A).ShouldBe("A");
-        converterB.AsString(WithRepeatsB.E).ShouldBe("E");
-        converterB.AsString(WithRepeatsB.K).ShouldBe("K");
+        converterB.ToString(WithRepeatsB.A).ShouldBe("A");
+        converterB.ToString(WithRepeatsB.E).ShouldBe("E");
+        converterB.ToString(WithRepeatsB.K).ShouldBe("K");
     }
 
     private enum NormalEnum : byte
