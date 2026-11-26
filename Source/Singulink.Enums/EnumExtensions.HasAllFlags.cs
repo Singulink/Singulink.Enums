@@ -2,9 +2,9 @@ using System.Runtime.CompilerServices;
 
 namespace Singulink.Enums;
 
-/// <summary>
+/// <content>
 /// Provides HasAllFlags implementations.
-/// </summary>
+/// </content>
 public static partial class EnumExtensions
 {
     /// <summary>

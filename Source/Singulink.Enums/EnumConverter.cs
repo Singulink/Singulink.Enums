@@ -68,13 +68,13 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
             case EnumFormat.DisplayName:
                 return DisplayNameConverters.Get(culture, ignoreCase);
             case EnumFormat.Description:
-                return ignoreCase ?
-                    (_descriptionIgnoreCase ??= Create(format, ignoreCase)) :
-                    (_description ??= Create(format, ignoreCase));
+                return ignoreCase
+                    ? (_descriptionIgnoreCase ??= Create(format, ignoreCase))
+                    : (_description ??= Create(format, ignoreCase));
             case EnumFormat.EnumMemberValue:
-                return ignoreCase ?
-                    (_enumMemberValueIgnoreCase ??= Create(format, ignoreCase)) :
-                    (_enumMemberValue ??= Create(format, ignoreCase));
+                return ignoreCase
+                    ? (_enumMemberValueIgnoreCase ??= Create(format, ignoreCase))
+                    : (_enumMemberValue ??= Create(format, ignoreCase));
             default:
                 [DoesNotReturn]
                 static void Throw() => throw new ArgumentOutOfRangeException(nameof(format), "Unsupported enumeration format.");
@@ -88,7 +88,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
     private readonly FrozenDictionary<string, T> _nameToValueLookup;
     private readonly FrozenDictionary<T, string> _valueToNameLookup;
     private readonly ImmutableArray<string> _names; // names in the same order as Enum<T>.Values
-    private readonly SpanAction<char, IntPtr> _toStringHelper;
+    private readonly SpanAction<char, nint> _toStringHelper;
 #if NET9_0_OR_GREATER
     private readonly FrozenDictionary<string, T>.AlternateLookup<ReadOnlySpan<char>> _nameSpanToValueLookup;
 #endif
@@ -319,7 +319,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
             resultLength += _names[item].Length;
 
         var toStringState = new ToStringState(foundItems, _names.AsSpan(), remainderString);
-        result = StringMethods.Create(resultLength, (IntPtr)(&toStringState), _toStringHelper);
+        result = StringMethods.Create(resultLength, (nint)(&toStringState), _toStringHelper);
 
         Done:
         if (rented is not null) ArrayPool<int>.Shared.Return(rented);
@@ -345,7 +345,7 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
 
     // Helper that creates the callback for creating the string result in ToString.
     // It optimizes for small separator lengths (and also the default value specifically) to ensure best performance for cases most affected.
-    private static unsafe SpanAction<char, IntPtr> CreateToStringHelper(string toStringSeparator)
+    private static unsafe SpanAction<char, nint> CreateToStringHelper(string toStringSeparator)
     {
         return toStringSeparator switch
         {
@@ -669,9 +669,9 @@ public sealed class EnumConverter<[DynamicallyAccessedMembers(DynamicallyAccesse
 
             public EnumConverter<T> Get(bool ignoreCase)
             {
-                return ignoreCase ?
-                    (_converterIgnoreCase ??= Create(ignoreCase)) :
-                    (_converter ??= Create(ignoreCase));
+                return ignoreCase
+                    ? (_converterIgnoreCase ??= Create(ignoreCase))
+                    : (_converter ??= Create(ignoreCase));
             }
 
             private EnumConverter<T> Create(bool ignoreCase)

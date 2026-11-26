@@ -446,3 +446,6 @@ dotnet_diagnostic.CS9113.severity = suggestion
 
 # SA1401: Fields should be private
 dotnet_diagnostic.SA1401.severity = suggestion
+
+# SA1504: All accessors should be single-line or multi-line
+dotnet_diagnostic.SA1504.severity = none
